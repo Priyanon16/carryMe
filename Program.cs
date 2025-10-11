@@ -1338,8 +1338,9 @@ admin.MapPost("/topups/{id:int}/reject", async (int id, AdminRejectDto body) =>
 
 
 
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+app.Run($"http://0.0.0.0:{port}");
 
-app.Run();
 
 record RiderEditDto(string Name, string Phone, string Email, string Username, string Address, int Is_Approved);
 record OrderStatusDto(string Status);
@@ -1347,4 +1348,5 @@ record WalletAdjustDto(int RiderId, double Amount, string? Type, string? Note);
 record FeeDto(double PlatformRate, double BaseDelivery, double RainSurcharge);
 record RejectDto(string Reason);
 record AdminRejectDto(string Reason);
+
 
