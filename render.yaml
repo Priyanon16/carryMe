@@ -1,10 +1,29 @@
 services:
   - type: web
-    name: carryme
+    name: carry-Me
+    env: docker
     plan: free
-    runtime: docker
-    autoDeploy: true
 
+    buildCommand: |
+      dotnet publish -c Release -o out
 
-    buildCommand: dotnet publish -c Release -o out
-    startCommand: ASPNETCORE_URLS=http://0.0.0.0:$PORT dotnet out/carryMe.dll
+    startCommand: |
+      set -e
+      apt-get update && apt-get install -y rclone
+
+      # สร้างไฟล์ config สำหรับเชื่อมต่อ Supabase Storage (S3-compatible)
+      cat > rclone.conf <<'EOF'
+      [supabase]
+      type = s3
+      provider = Other
+      env_auth = false
+      access_key_id = ${SB_S3_KEY}
+      secret_access_key = ${SB_S3_SECRET}
+      endpoint = https://${SB_PROJECT_REF}.supabase.co/storage/v1/s3
+      EOF
+
+      mkdir -p wwwroot/uploads
+
+      # --- ดึงข้อมูลที่เคยสำรองไว้ ---
+      rclone copy supabase:${SB_BUCKET}/carryme.db ./ --config rclone.conf || true
+      rclone copy supabase:${SB_BUCKET}/uploads ./wwwroo_
