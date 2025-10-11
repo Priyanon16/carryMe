@@ -9,9 +9,10 @@ services:
 
     startCommand: |
       set -e
+      echo "== Install rclone =="
       apt-get update && apt-get install -y rclone
 
-      # สร้างไฟล์ config สำหรับเชื่อมต่อ Supabase Storage (S3-compatible)
+      echo "== Write rclone.conf =="
       cat > rclone.conf <<'EOF'
       [supabase]
       type = s3
@@ -22,8 +23,31 @@ services:
       endpoint = https://${SB_PROJECT_REF}.supabase.co/storage/v1/s3
       EOF
 
+      echo "== Prepare local dirs =="
       mkdir -p wwwroot/uploads
 
-      # --- ดึงข้อมูลที่เคยสำรองไว้ ---
+      echo "== Ensure bucket paths exist (creates uploads/ if missing) =="
+      rclone mkdir supabase:${SB_BUCKET} --config rclone.conf || true
+      rclone mkdir supabase:${SB_BUCKET}/uploads --config rclone.conf || true
+
+      echo "== Restore from Supabase (if exists) =="
+      rclone ls supabase:${SB_BUCKET} --config rclone.conf || true
       rclone copy supabase:${SB_BUCKET}/carryme.db ./ --config rclone.conf || true
-      rclone copy supabase:${SB_BUCKET}/uploads ./wwwroo_
+      rclone copy supabase:${SB_BUCKET}/uploads ./wwwroot/uploads --config rclone.conf || true
+
+      echo "== Start app =="
+      set +e
+      dotnet out/carryMe.dll &
+      APP_PID=$!
+      set -e
+
+      echo "== Immediate backup once (to seed remote) =="
+      # อัปโหลดครั้งแรกทันที เพื่อให้ครั้งต่อไปดึงได้แน่
+      rclone copy ./carryme.db supabase:${SB_BUCKET} --config rclone.conf || true
+      rclone copy ./wwwroot/uploads supabase:${SB_BUCKET}/uploads --config rclone.conf || true
+
+      echo "== Start fast backup loop (every 10s) =="
+      while sleep 10; do
+        rclone copy ./carryme.db supabase:${SB_BUCKET} --config rclone.conf || true
+        rclone copy ./wwwroot/uploads supabase:${SB_BUCKET}/uploads --config rclone.conf || true
+      done
