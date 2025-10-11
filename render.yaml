@@ -2,8 +2,9 @@ services:
   - type: web
     name: carryme
     plan: free
-    env: dotnet
+    runtime: docker
     autoDeploy: true
+
 
     buildCommand: dotnet publish -c Release -o out
     startCommand: ASPNETCORE_URLS=http://0.0.0.0:$PORT dotnet out/carryMe.dll
