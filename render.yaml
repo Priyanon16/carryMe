@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: carryMe
+    env: dotnet
+    plan: free
+    buildCommand: "dotnet restore && dotnet build -c Release"
+    startCommand: "dotnet run --urls=http://0.0.0.0:10000"
+    envVars:
+      - key: PORT
+        value: 10000
