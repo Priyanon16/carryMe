@@ -1,0 +1,259 @@
+﻿<!doctype html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ฝากหิ้ว – carryMe</title>
+    <style>
+        :root {
+            --ink: #0f172a;
+            --muted: #64748b;
+            --line: #e5e7eb;
+            --pri: #1f4396;
+            --pri2: #0f2b68;
+            --bg: #f7f8fc;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Prompt, sans-serif;
+            color: var(--ink);
+            background: var(--bg);
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--pri), var(--pri2));
+            color: #fff;
+            text-align: center;
+            padding: 50px 16px 120px;
+        }
+
+            header h1 {
+                margin: 0;
+                font-size: 34px;
+                font-weight: 900;
+            }
+
+            header p {
+                margin-top: 6px;
+                opacity: 0.95;
+            }
+
+        .wrap {
+            max-width: 900px;
+            margin: -80px auto 40px;
+            padding: 0 16px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 18px;
+            border: 1px solid var(--line);
+            box-shadow: 0 10px 30px rgba(0,0,0,.08);
+            padding: 24px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        @media (max-width: 800px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        label {
+            display: block;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+
+        input, textarea {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 15px;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+            input:focus, textarea:focus {
+                outline: none;
+                border-color: #c7d2fe;
+                box-shadow: 0 0 0 3px rgba(31,67,150,.15);
+            }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 15px;
+            transition: .2s;
+        }
+
+            .btn.primary {
+                background: var(--pri);
+                color: #fff;
+            }
+
+                .btn.primary:hover {
+                    background: var(--pri2);
+                }
+
+            .btn.ghost {
+                background: #eef2ff;
+                color: var(--pri2);
+            }
+
+        .muted {
+            color: var(--muted);
+            font-size: 13px;
+            margin-top: 6px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 18px;
+            right: 18px;
+            background: #111827;
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,.25);
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>ฝากหิ้ว</h1>
+        <p>กรอกข้อมูลให้ครบ แล้วกด “ยืนยันฝากหิ้ว” ระบบจะสร้างรหัสออเดอร์ให้ทันที</p>
+    </header>
+
+    <main class="wrap">
+        <div class="card">
+            <form id="frm">
+                <div class="form-grid">
+                    <div>
+                        <label>ชื่อผู้สั่ง</label>
+                        <input id="customer_name" type="text" placeholder="เช่น เบส สุขแลก" required />
+                    </div>
+
+                    <div>
+                        <label>เบอร์โทร</label>
+                        <input id="customer_phone" type="tel" placeholder="080-xxx-xxxx" required />
+                    </div>
+
+                    <div>
+                        <label>ร้าน / สถานที่ซื้อ</label>
+                        <input id="shop" type="text" placeholder="เช่น 7-Eleven, Amazon" />
+                    </div>
+
+                    <div>
+                        <label>งบประมาณ (บาท)</label>
+                        <input id="budget" type="number" min="0" step="1" value="100" />
+                    </div>
+
+                    <div class="full">
+                        <label>รายการ / รายละเอียด</label>
+                        <textarea id="items" placeholder="รายการที่ฝากซื้อ เช่น นมกล่อง 2 กล่อง น้ำดื่ม 1 ขวด"></textarea>
+                    </div>
+
+                    <div>
+                        <label>ส่งที่</label>
+                        <input id="dropoff" type="text" placeholder="เช่น คณะบัญชี หรือ หอพัก" />
+                    </div>
+
+                    <div>
+                        <label>เวลาที่ต้องการ</label>
+                        <input id="desired_time" type="text" placeholder="เช่น วันนี้ 18:00" />
+                    </div>
+
+                    <div class="full">
+                        <label>Note</label>
+                        <textarea id="note" placeholder="ข้อมูลเพิ่มเติม (ถ้ามี)..."></textarea>
+                    </div>
+
+                    <div class="full actions">
+                        <button class="btn primary" type="submit">ยืนยันฝากหิ้ว</button>
+                        <button class="btn ghost" type="reset">ล้างฟอร์ม</button>
+                    </div>
+
+                    <div class="full muted">
+                        * ระบบจะสร้างรหัสออเดอร์อัตโนมัติหลังจากยืนยัน
+                    </div>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const $ = s => document.querySelector(s);
+        const toast = (msg, ok = true) => {
+            const el = $('#toast');
+            el.textContent = msg;
+            el.style.background = ok ? '#111827' : '#b91c1c';
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 2500);
+        };
+
+        $('#frm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const payload = {
+                customer_name: $('#customer_name').value.trim(),
+                customer_phone: $('#customer_phone').value.trim(),
+                shop: $('#shop').value.trim(),
+                items: $('#items').value.trim(),
+                budget: +$('#budget').value || 0,
+                dropoff: $('#dropoff').value.trim(),
+                desired_time: $('#desired_time').value.trim(),
+                note: $('#note').value.trim(),
+                pay_method: 'cash'
+            };
+
+            if (!payload.customer_name || !payload.customer_phone) {
+                toast('กรุณากรอกชื่อและเบอร์โทร', false);
+                return;
+            }
+
+            try {
+                const r = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await r.json();
+                if (!r.ok) throw new Error(data?.error || 'สร้างออเดอร์ไม่สำเร็จ');
+
+                toast('สร้างออเดอร์สำเร็จ!');
+                setTimeout(() => location.href = `/customer/order.html?code=${encodeURIComponent(data.code)}`, 600);
+            } catch (err) {
+                toast('ผิดพลาด: ' + err.message, false);
+            }
+        });
+    </script>
+</body>
+</html>

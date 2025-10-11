@@ -1,0 +1,223 @@
+﻿<!doctype html>
+<html lang="th">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>carryMe – เติมเครดิต</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: system-ui,-apple-system,Segoe UI,Roboto,Prompt,sans-serif;
+            background: #f9fafb;
+            color: #0f172a;
+        }
+
+        .hero {
+            background: linear-gradient(135deg,#1f4396,#0f2b68);
+            color: #fff;
+            padding: 22px 18px;
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px;
+        }
+
+            .hero h1 {
+                margin: 0;
+                font-size: 26px;
+                font-weight: 800;
+            }
+
+        .container {
+            max-width: 640px;
+            margin: -12px auto 24px;
+            padding: 0 16px;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 6px 20px rgba(0,0,0,.05);
+            margin-top: 18px;
+        }
+
+        .balance {
+            font-size: 28px;
+            font-weight: 800;
+            margin: 12px 0;
+        }
+
+        .btn {
+            background: #0ea5e9;
+            color: #fff;
+            border: 0;
+            padding: 10px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+            .btn.ghost {
+                background: #e2e8f0;
+                color: #0f172a;
+            }
+
+        nav {
+            position: sticky;
+            bottom: 0;
+            background: #fff;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+        }
+
+            nav a {
+                color: #0f172a;
+                text-decoration: none;
+                font-size: 14px;
+            }
+
+        .meta {
+            color: #64748b;
+            font-size: 13px;
+            margin-top: 6px;
+        }
+
+        .qr-box {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>เติมเครดิต</h1>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div><strong>ยอดคงเหลือ</strong></div>
+            <div class="balance" id="balance">0.00 ฿</div>
+
+            <hr style="margin:16px 0">
+
+            <div>
+                <strong>โอนเข้าบัญชี</strong><br>
+                <div class="meta">ธนาคารกรุงไทย 123-4-56789-0 (ชื่อบัญชี: CarryMe Co.)</div>
+            </div>
+
+            <div style="text-align:center;margin-top:10px">
+                <img src="/uploads/qr-topup.png" alt="QR เติมเงิน"
+                     style="width:220px;border-radius:12px;border:1px solid #e5e7eb">
+            </div>
+
+            <div style="margin-top:12px;display:grid;gap:8px">
+                <label>จำนวนเงินที่โอน (บาท)</label>
+                <input id="amount" type="number" min="1" placeholder="เช่น 100">
+
+                <label>อัปโหลดสลิป</label>
+                <input id="slip" type="file" accept="image/*">
+            </div>
+
+            <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn" id="btnTopup">ส่งคำขอเติมเครดิต</button>
+                <button class="btn ghost" id="btnRefresh">รีเฟรชยอด</button>
+            </div>
+
+            <div class="meta" style="margin-top:8px">
+                *หลังส่งคำขอ ระบบจะรอแอดมินตรวจสลิปและอนุมัติ จึงจะเข้ากระเป๋า
+            </div>
+        </div>
+
+        <!-- ✅ B2: ตารางคำขอเติมล่าสุด -->
+        <div class="card">
+            <div><strong>คำขอเติมล่าสุด</strong></div>
+            <div id="topupList" class="meta">กำลังโหลด…</div>
+        </div>
+
+    </div>
+
+
+    <nav>
+        <a href="/">หน้าหลัก</a>
+        <a href="/rider/dashboard.html">แดชบอร์ด</a>
+        <a href="/rider/wallet.html">กระเป๋าเงิน</a>
+        <a href="/rider/login.html" id="logout">ออกจากระบบ</a>
+    </nav>
+
+    <script>
+        async function j(url, opt) {
+            const r = await fetch(url, opt);
+            if (r.status === 401) { location.href = '/rider/login.html'; throw new Error('unauthorized'); }
+            if (!r.ok) throw new Error(await r.text());
+            return r.json();
+        }
+
+        async function refreshBalance() {
+            const w = await j('/api/rider/wallet');
+            document.getElementById('balance').textContent = (w.wallet || 0).toFixed(2) + ' ฿';
+        }
+
+        async function loadTopups() {
+            try {
+                const rows = await j('/api/rider/wallet/topups');
+                if (!rows.length) { document.getElementById('topupList').textContent = 'ยังไม่มีรายการ'; return; }
+                document.getElementById('topupList').innerHTML = rows.map(r => {
+                    const t = new Date(r.created_at).toLocaleString();
+                    const st = r.status === 'pending' ? 'รอตรวจ' : r.status === 'approved' ? 'อนุมัติแล้ว' : 'ปฏิเสธ';
+                    const note = r.note ? ` <span class="meta">(${r.note})</span>` : '';
+                    return `<div style="padding:6px 0;border-bottom:1px solid #e5e7eb">
+              <div><strong>${r.amount.toFixed ? r.amount.toFixed(2) : r.amount} ฿</strong> • ${st}${note}</div>
+              <div class="meta">${t}${r.approved_at ? ' • อนุมัติ: ' + new Date(r.approved_at).toLocaleString() : ''}</div>
+              ${r.slip_url ? `<div style="margin-top:6px"><img src="${r.slip_url}" style="height:80px;border:1px solid #e5e7eb;border-radius:8px"></div>` : ''}
+            </div>`;
+                }).join('');
+            } catch (e) {
+                document.getElementById('topupList').textContent = 'โหลดไม่สำเร็จ';
+            }
+        }
+
+        document.getElementById('btnTopup').addEventListener('click', async () => {
+            const amount = parseFloat(document.getElementById('amount').value);
+            const slip = document.getElementById('slip').files[0];
+            if (isNaN(amount) || amount <= 0) { alert('กรุณากรอกจำนวนเงินให้ถูกต้อง'); return; }
+
+            const fd = new FormData();
+            fd.append('amount', String(amount));
+            if (slip) fd.append('slip', slip);  // ไม่ใส่ก็ได้
+
+            try {
+                const r = await fetch('/api/rider/wallet/topup', { method: 'POST', body: fd });
+                if (!r.ok) throw new Error(await r.text());
+                alert('ส่งคำขอเติมแล้ว รอแอดมินอนุมัติ');
+                document.getElementById('amount').value = '';
+                document.getElementById('slip').value = '';
+            } catch (e) { alert('ไม่สำเร็จ: ' + e.message); }
+        });
+
+
+        document.getElementById('btnRefresh').addEventListener('click', () => {
+            refreshBalance(); loadTopups();
+        });
+
+        document.getElementById('logout').addEventListener('click', async (e) => {
+            e.preventDefault(); await fetch('/api/riders/logout', { method: 'POST' }); location.href = '/rider/login.html';
+        });
+
+        refreshBalance();
+        loadTopups();
+    </script>
+
+
+</body>
+</html>

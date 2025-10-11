@@ -1,0 +1,422 @@
+﻿<!doctype html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Admin – อนุมัติสลิปเติมเครดิต</title>
+    <style>
+        :root {
+            --ink: #0f172a;
+            --muted: #64748b;
+            --line: #e5e7eb;
+            --blue: #1f4396;
+            --blue2: #0f2b68;
+            --ok: #10b981;
+            --danger: #ef4444;
+            --btn: #0ea5e9;
+            --bg: #f6f8fc;
+            --panel: #fff;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui,-apple-system,Segoe UI,Roboto,Prompt,sans-serif;
+            background: var(--bg);
+            color: var(--ink)
+        }
+
+        .hero {
+            background: linear-gradient(135deg,var(--blue),var(--blue2));
+            color: #fff;
+            padding: 22px 16px;
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px
+        }
+
+            .hero h1 {
+                margin: 0 0 4px;
+                font-size: 24px;
+                font-weight: 800
+            }
+
+            .hero .meta {
+                opacity: .9
+            }
+
+        .wrap {
+            max-width: 980px;
+            margin: -12px auto 24px;
+            padding: 0 16px
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 14px;
+            box-shadow: 0 8px 22px rgba(0,0,0,.06);
+            margin-top: 12px
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center
+        }
+
+        select, input[type="text"] {
+            padding: 8px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 14px
+        }
+
+        .btn {
+            background: var(--btn);
+            color: #fff;
+            border: 0;
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-weight: 700;
+            cursor: pointer
+        }
+
+            .btn.ghost {
+                background: #e2e8f0;
+                color: #0f172a
+            }
+
+            .btn.ok {
+                background: var(--ok)
+            }
+
+            .btn.danger {
+                background: var(--danger)
+            }
+
+        .list {
+            display: grid;
+            gap: 10px;
+            margin-top: 12px
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: center;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 10px
+        }
+
+        .info {
+            display: grid;
+            gap: 4px
+        }
+
+        .meta {
+            color: var(--muted);
+            font-size: 13px
+        }
+
+        .amount {
+            font-size: 18px;
+            font-weight: 800
+        }
+
+        .status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 12px;
+            border: 1px solid var(--line)
+        }
+
+            .status.pending {
+                background: #fff7ed;
+                border-color: #fed7aa
+            }
+
+            .status.approved {
+                background: #ecfdf5;
+                border-color: #bbf7d0
+            }
+
+            .status.rejected {
+                background: #fef2f2;
+                border-color: #fecaca
+            }
+
+        .slip {
+            height: 72px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            cursor: pointer
+        }
+
+        .right {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap
+        }
+
+        .empty {
+            padding: 12px;
+            border: 1px dashed var(--line);
+            border-radius: 12px;
+            text-align: center;
+            color: var(--muted)
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        a.nav {
+            color: #fff;
+            text-decoration: none;
+            border: 1px solid rgba(255,255,255,.35);
+            padding: 6px 10px;
+            border-radius: 10px;
+            font-size: 13px
+        }
+        /* modal */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15,23,42,.5);
+            display: none;
+            z-index: 40
+        }
+
+            .overlay.show {
+                display: block
+            }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            place-items: center;
+            z-index: 50
+        }
+
+            .modal.show {
+                display: grid
+            }
+
+        .panel {
+            width: min(720px,94vw);
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            box-shadow: 0 12px 30px rgba(0,0,0,.18);
+            overflow: hidden
+        }
+
+        .panel-head {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--line);
+            font-weight: 800
+        }
+
+        .panel-body {
+            padding: 12px 14px
+        }
+
+        .panel-foot {
+            padding: 12px 14px;
+            border-top: 1px solid var(--line);
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px
+        }
+
+        .panel-body img {
+            max-width: 100%;
+            border-radius: 12px;
+            border: 1px solid var(--line)
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <div class="topbar">
+            <div>
+                <h1>อนุมัติสลิปเติมเครดิต</h1>
+                <div class="meta">สำหรับผู้ดูแลระบบ</div>
+            </div>
+            <div>
+                <a class="nav" href="/admin/index.html">หน้าแอดมิน</a>
+                <a class="nav" href="#" id="logout">ออกจากระบบ</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="wrap">
+        <div class="card">
+            <div class="toolbar">
+                <label>
+                    สถานะ:
+                    <select id="status">
+                        <option value="pending">รอตรวจ</option>
+                        <option value="approved">อนุมัติแล้ว</option>
+                        <option value="rejected">ปฏิเสธ</option>
+                        <option value="">ทั้งหมด</option>
+                    </select>
+                </label>
+                <input id="q" type="text" placeholder="ค้นหาด้วยชื่อไรเดอร์ / ไอดี / จำนวนเงิน" />
+                <button class="btn" id="btnReload">โหลดรายการ</button>
+            </div>
+            <div id="list" class="list">
+                <div class="empty">กำลังโหลด…</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- image modal -->
+    <div id="ov" class="overlay"></div>
+    <div id="md" class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+        <div class="panel">
+            <div class="panel-head" id="mTitle">สลิปการโอน</div>
+            <div class="panel-body">
+                <img id="mImg" src="" alt="slip">
+            </div>
+            <div class="panel-foot">
+                <button class="btn ghost" id="mClose">ปิด</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ---------- helpers ----------
+    async function j(url, opt) {
+      const r = await fetch(url, opt);
+      // ถ้าไม่ได้ล็อกอินแอดมิน จะได้ 401 (เพราะ API) → ส่งไปหน้า login
+      if (r.status === 401) { location.href = '/admin/login.html'; throw new Error('unauthorized'); }
+      if (!r.ok) throw new Error(await r.text());
+      return r.json();
+    }
+    const $ = s => document.querySelector(s);
+    const fmtMoney = n => (Number(n)||0).toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2});
+    const esc = s => (s??'').toString().replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+    // ---------- load list ----------
+    async function load() {
+      const st = $('#status').value;
+      let url = '/api/admin/topups';
+      if (st) url += '?status=' + encodeURIComponent(st);
+
+      let rows = await j(url);
+      // ตัวกรองฝั่งหน้าอย่างหยาบด้วย q
+      const q = $('#q').value.trim().toLowerCase();
+      if (q) {
+        rows = rows.filter(r =>
+          (r.rider_name||'').toLowerCase().includes(q) ||
+          String(r.rider_id).includes(q) ||
+          String(r.amount).includes(q)
+        );
+      }
+
+      if (!rows.length) {
+        $('#list').innerHTML = `<div class="empty">ไม่พบรายการ</div>`;
+        return;
+      }
+
+      $('#list').innerHTML = rows.map(r => {
+        const created = r.created_at ? new Date(r.created_at).toLocaleString() : '';
+        const approved = r.approved_at ? new Date(r.approved_at).toLocaleString() : '';
+        const stClass = r.status;
+        const stText  = r.status === 'pending' ? 'รอตรวจ' : r.status === 'approved' ? 'อนุมัติแล้ว' : 'ปฏิเสธ';
+
+        const slipImg = r.slip_url
+          ? `<img class="slip" src="${esc(r.slip_url)}" alt="slip" onclick="preview('${esc(r.slip_url)}')">`
+          : `<span class="meta">ไม่มีสลิปแนบ</span>`;
+
+        const actionBtns = r.status === 'pending'
+          ? `<button class="btn ok" onclick="approve(${r.id})">อนุมัติ</button>
+             <button class="btn danger" onclick="reject(${r.id})">ปฏิเสธ</button>`
+          : `<button class="btn ghost" onclick="preview('${esc(r.slip_url||'')}')">ดูสลิป</button>`;
+
+        return `
+          <div class="row">
+            <div class="info">
+              <div>
+                <span class="amount">${fmtMoney(r.amount)} ฿</span>
+                <span class="status ${stClass}">${stText}</span>
+              </div>
+              <div class="meta">Rider #${r.rider_id} • ${esc(r.rider_name || '-')}</div>
+              <div class="meta">ส่งคำขอ: ${esc(created)}${approved ? ' • อนุมัติ: ' + esc(approved): ''}</div>
+              ${r.note ? `<div class="meta">หมายเหตุ: ${esc(r.note)}</div>` : ''}
+              <div style="margin-top:6px">${slipImg}</div>
+            </div>
+            <div class="right">${actionBtns}</div>
+          </div>`;
+      }).join('');
+    }
+
+    // ---------- actions ----------
+    async function approve(id) {
+      if (!confirm('ยืนยันอนุมัติคำขอนี้?')) return;
+      try {
+        await j(`/api/admin/topups/${id}/approve`, { method:'POST' });
+        alert('อนุมัติแล้ว');
+        load();
+      } catch(e){ alert('ไม่สำเร็จ: ' + e.message); }
+    }
+    async function reject(id) {
+      const reason = prompt('เหตุผลที่ปฏิเสธ');
+      if (reason === null) return;
+      if (!reason.trim()) { alert('กรุณาระบุเหตุผล'); return; }
+      try {
+        await j(`/api/admin/topups/${id}/reject`, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ Reason: reason.trim() })
+        });
+        alert('ปฏิเสธแล้ว');
+        load();
+      } catch(e){ alert('ไม่สำเร็จ: ' + e.message); }
+    }
+
+    // ---------- preview modal ----------
+    function preview(src){
+      if(!src){ alert('ไม่มีสลิป'); return; }
+      $('#mImg').src = src;
+      $('#ov').classList.add('show');
+      $('#md').classList.add('show');
+    }
+    function closeModal(){
+      $('#ov').classList.remove('show');
+      $('#md').classList.remove('show');
+      $('#mImg').src = '';
+    }
+    $('#mClose').addEventListener('click', closeModal);
+    $('#ov').addEventListener('click', closeModal);
+
+    // ---------- events ----------
+    $('#btnReload').addEventListener('click', load);
+    $('#status').addEventListener('change', load);
+    $('#q').addEventListener('keydown', e => { if (e.key === 'Enter') load(); });
+
+    // logout
+    $('#logout').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await fetch('/api/admin/logout', { method:'POST' });
+      location.href = '/admin/login.html';
+    });
+
+    // init
+    load();
+    </script>
+</body>
+</html>

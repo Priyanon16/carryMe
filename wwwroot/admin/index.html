@@ -1,0 +1,183 @@
+﻿<!doctype html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin – carryMe</title>
+    <style>
+        body {
+            font-family: system-ui,Segoe UI,Prompt,sans-serif;
+            background: #f5f6fb;
+            margin: 0
+        }
+
+        .wrap {
+            max-width: 980px;
+            margin: 20px auto;
+            padding: 0 16px
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            box-shadow: 0 8px 20px rgba(0,0,0,.06);
+            padding: 16px
+        }
+
+        h1 {
+            margin: 0 0 16px
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse
+        }
+
+        th, td {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 10px;
+            text-align: left;
+            font-size: 14px;
+            vertical-align: top
+        }
+
+        .btn {
+            padding: 6px 10px;
+            border-radius: 10px;
+            border: 0;
+            cursor: pointer;
+            font-weight: 700
+        }
+
+        .ok {
+            background: #10b981;
+            color: #fff
+        }
+
+        .danger {
+            background: #ef4444;
+            color: #fff
+        }
+
+        .muted {
+            background: #e5e7eb
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+            align-items: center
+        }
+
+        input[type="number"] {
+            width: 100px;
+            padding: 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px
+        }
+
+        code {
+            background: #eef2ff;
+            padding: 2px 6px;
+            border-radius: 6px
+        }
+    </style>
+</head>
+<body>
+    <main class="wrap">
+        <h1>Admin • ผู้รับหิ้วรออนุมัติ</h1>
+        <div class="card">
+            <div class="row" style="margin-bottom:10px">
+                <label>Admin Token: <input id="token" placeholder="X-Admin-Token" style="width:260px;padding:6px;border:1px solid #cbd5e1;border-radius:8px"></label>
+                <button class="btn muted" onclick="load()">รีเฟรช</button>
+            </div>
+            <div id="list">กำลังโหลด…</div>
+        </div>
+    </main>
+
+    <script>
+  const ADMIN_TOKEN = "dev-admin-token"; // <-- แก้ให้ตรงกับฝั่งเซิร์ฟเวอร์
+  const $ = s => document.querySelector(s);
+
+  function getToken(){ return $('#token').value.trim() || ADMIN_TOKEN; }
+
+  async function j(url, opt={}){
+    opt.headers = Object.assign({}, opt.headers||{}, {'X-Admin-Token': getToken()});
+    const r = await fetch(url, opt);
+    if(!r.ok) throw new Error(await r.text() || r.status);
+    return r.json();
+  }
+
+  async function load(){
+    $('#list').textContent = 'กำลังโหลด…';
+    try{
+      const rows = await j('/api/admin/riders/pending');
+      if(!rows.length){ $('#list').innerHTML = '<div>ไม่มีคำขอใหม่</div>'; return; }
+      $('#list').innerHTML = `
+        <table>
+          <thead><tr>
+            <th>ID</th><th>ชื่อ</th><th>เบอร์/อีเมล</th><th>เอกสาร</th><th>สมัครเมื่อ</th><th>กระทำ</th>
+          </tr></thead>
+          <tbody>
+            ${rows.map(r=>`
+              <tr>
+                <td>${r.id}</td>
+                <td>${escapeHtml(r.name||'')}</td>
+                <td>${escapeHtml(r.phone||'-')}<br>${escapeHtml(r.email||'-')}<br><code>${escapeHtml(r.username||'')}</code></td>
+                <td>
+                  ${r.vehicle_photo_url? `<a target="_blank" href="${r.vehicle_photo_url}">รถ/พาหนะ</a>`:''}
+                  ${r.prb_doc_url? ` • <a target="_blank" href="${r.prb_doc_url}">ใบประกอบการ</a>`:''}
+                  ${r.national_id_card_url? ` • <a target="_blank" href="${r.national_id_card_url}">บัตร ปชช.</a>`:''}
+                </td>
+                <td>${escapeHtml(r.created_at||'')}</td>
+                <td>
+                  <div class="row">
+                    <button class="btn ok" onclick="approve(${r.id})">อนุมัติ</button>
+                    <button class="btn danger" onclick="reject(${r.id})">ปฏิเสธ</button>
+                  </div>
+                  <div class="row" style="margin-top:8px">
+                    <input type="number" min="1" id="amt-${r.id}" placeholder="จำนวนเงิน">
+                    <button class="btn" onclick="topup(${r.id})">เติมเครดิต</button>
+                  </div>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+    }catch(e){
+      $('#list').innerHTML = `<div style="color:#ef4444">โหลดไม่ได้: ${e.message}</div>`;
+    }
+  }
+
+  function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
+
+  async function approve(id){
+    if(!confirm('อนุมัติไอดี '+id+' ?')) return;
+    try{ await j('/api/admin/riders/'+id+'/approve',{method:'POST'}); alert('อนุมัติแล้ว'); load(); }
+    catch(e){ alert('อนุมัติไม่สำเร็จ: '+e.message); }
+  }
+  async function reject(id){
+    const reason = prompt('เหตุผลปฏิเสธ (ใส่หรือไม่ใส่ก็ได้)');
+    if(reason===null) return;
+    try{
+      await j('/api/admin/riders/'+id+'/reject',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reason})});
+      alert('ปฏิเสธแล้ว'); load();
+    }catch(e){ alert('ปฏิเสธไม่สำเร็จ: '+e.message); }
+  }
+  async function topup(id){
+    const amt = parseFloat(document.getElementById('amt-'+id).value||'0');
+    if(!(amt>0)) { alert('กรอกจำนวนเงินให้ถูกต้อง'); return; }
+    try{
+      await j('/api/admin/riders/'+id+'/wallet/topup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount:amt})});
+      alert('เติมเครดิตสำเร็จ'); document.getElementById('amt-'+id).value='';
+    }catch(e){ alert('เติมเครดิตไม่สำเร็จ: '+e.message); }
+  }
+
+  // เติมค่าเริ่มต้น
+  document.addEventListener('DOMContentLoaded', ()=>{
+    $('#token').value = ADMIN_TOKEN;
+    load();
+  });
+    </script>
+</body>
+</html>

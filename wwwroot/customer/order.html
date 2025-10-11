@@ -1,0 +1,219 @@
+﻿<!doctype html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>รายละเอียดออเดอร์ – carryMe</title>
+    <style>
+        :root {
+            --ink: #0f172a;
+            --muted: #475569;
+            --line: #e2e8f0;
+            --danger: #ef4444;
+            --ok: #059669
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui,-apple-system,Segoe UI,Roboto,Prompt,sans-serif;
+            background: #f8fafc;
+            color: var(--ink)
+        }
+
+        .wrap {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 16px
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            box-shadow: 0 6px 18px rgba(0,0,0,.06);
+            padding: 24px
+        }
+
+        h1 {
+            font-size: 22px;
+            margin: 0 0 12px
+        }
+
+        .meta {
+            color: var(--muted);
+            font-size: 15px
+        }
+
+        .row {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            margin: 6px 0
+        }
+
+        .tag {
+            display: inline-block;
+            background: #eef2ff;
+            color: #1e3a8a;
+            border: 1px solid #c7d2fe;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-weight: 700;
+            font-size: 12px
+        }
+
+        .btn {
+            border: 0;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-weight: 700;
+            cursor: pointer
+        }
+
+            .btn.danger {
+                background: var(--danger);
+                color: #fff
+            }
+
+        .pay {
+            margin-top: 20px;
+            border: 1px dashed var(--line);
+            border-radius: 12px;
+            padding: 18px;
+            background: #fbfdff
+        }
+
+            .pay h3 {
+                margin: 0 0 10px;
+                font-size: 18px
+            }
+
+        .grid2 {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            font-size: 15px
+        }
+
+        .amt {
+            font-weight: 800
+        }
+
+        .ok {
+            color: var(--ok);
+            font-weight: 700
+        }
+
+        .sep {
+            height: 1px;
+            background: var(--line);
+            margin: 10px 0
+        }
+
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="card">
+            <h1>รายละเอียดออเดอร์</h1>
+
+            <div class="row"><span class="meta">รหัส:</span><strong id="code">-</strong></div>
+            <div class="row"><span class="meta">ผู้ฝาก:</span><strong id="customer">-</strong></div>
+            <div class="row"><span class="meta">ร้าน:</span><span id="shop">-</span></div>
+            <div class="row"><span class="meta">ปลายทาง:</span><span id="dropoff">-</span></div>
+            <div class="row"><span class="meta">สถานะ:</span><span class="tag" id="status">-</span></div>
+
+            <!-- กล่องสรุปยอด (จ่ายปลายทาง) -->
+            <div id="summaryBox" class="pay" style="display:none">
+                <h3>ยอดที่ต้องชำระ (ชำระเงินสดปลายทาง)</h3>
+                <div class="grid2">
+                    <div>ค่าส่ง</div>          <div class="amt" id="sum-delivery">-</div>
+                    <div>ค่าสินค้าจริง</div>    <div class="amt" id="sum-goods">-</div>
+                    <div>เงื่อนไขเพิ่มเติม</div> <div class="amt" id="sum-extra">-</div>
+                    <div class="sep" style="grid-column:1/3"></div>
+                    <div>รวมชำระ</div>         <div class="amt ok" id="sum-total">-</div>
+                </div>
+                <div id="sum-note" class="meta" style="margin-top:8px"></div>
+                <div class="meta" style="margin-top:8px">* ชำระให้ผู้รับหิ้วเมื่อส่งของเรียบร้อย</div>
+            </div>
+
+            <div class="actions">
+                <button class="btn danger" onclick="cancelOrder()">ยกเลิกออเดอร์</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const qs = new URLSearchParams(location.search);
+        const code = qs.get('code');
+        const fmt = n => (n ?? 0).toLocaleString('th-TH', { minimumFractionDigits: 0 });
+
+        async function loadOrder() {
+            if (!code) return;
+            const r = await fetch('/api/orders/' + code);
+            if (!r.ok) { alert('โหลดออเดอร์ไม่สำเร็จ'); return; }
+            const data = await r.json();
+            const o = data.order;
+
+            document.getElementById('code').textContent = o.code;
+            document.getElementById('customer').textContent = o.customer_name ?? '-';
+            document.getElementById('shop').textContent = o.shop ?? '-';
+            document.getElementById('dropoff').textContent = o.dropoff ?? '-';
+            document.getElementById('status').textContent = o.status;
+
+            await loadSummary();
+        }
+
+        async function loadSummary() {
+            const r = await fetch('/api/pay/quote/' + code);
+            const box = document.getElementById('summaryBox');
+
+            if (!r.ok) {
+                box.innerHTML = '<div class="meta">ผู้รับหิ้วยังไม่แจ้งยอด</div>';
+                box.style.display = 'block';
+                return;
+            }
+
+            const q = await r.json();
+            document.getElementById('sum-delivery').textContent = fmt(q.delivery) + ' บ.';
+            document.getElementById('sum-goods').textContent = fmt(q.goods) + ' บ.';
+            document.getElementById('sum-extra').textContent = fmt(q.extra) + ' บ.';
+            document.getElementById('sum-total').textContent = fmt(q.subtotal) + ' บ.';
+
+            const opts = [];
+            if (q.rain) opts.push('ฝนตก (+10)');
+            if (q.z1) opts.push('ข้ามโซน ขามเรียง (+10)');
+            if (q.z2) opts.push('ข้ามโซน ท่าขอนยาง (+10)');
+            if (q.z3) opts.push('ข้ามโซน หน้า มมส (+10)');
+            document.getElementById('sum-note').textContent =
+                opts.length ? ('เงื่อนไขเพิ่มเติม: ' + opts.join(' / ')) : 'ไม่มีเงื่อนไขเพิ่มเติม';
+
+            box.style.display = 'block';
+        }
+
+        async function cancelOrder() {
+            const reason = prompt('เหตุผลในการยกเลิก:');
+            if (!reason) return;
+            const r = await fetch('/api/orders/' + code + '/cancel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reason })
+            });
+            if (!r.ok) { alert('ยกเลิกไม่สำเร็จ'); return; }
+            alert('ยกเลิกออเดอร์แล้ว');
+            location.reload();
+        }
+
+        loadOrder();
+    </script>
+</body>
+</html>

@@ -1,0 +1,233 @@
+﻿<!doctype html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Login – carryMe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #0f172a;
+            --muted: #64748b;
+            --line: #e5e7eb;
+            --grad1: #ff8a3d;
+            --grad2: #6c63ff;
+            --card: #ffffff;
+            --btn: #111827;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html, body {
+            height: 100%
+        }
+
+        body {
+            margin: 0;
+            font-family: Prompt,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+            color: var(--ink);
+            background: linear-gradient(120deg,var(--grad1),var(--grad2));
+            display: grid;
+            place-items: center;
+            padding: 24px;
+        }
+
+        .card {
+            width: min(420px,100%);
+            background: rgba(255,255,255,.9);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,.6);
+            border-radius: 22px;
+            box-shadow: 0 18px 40px rgba(0,0,0,.14);
+            padding: 28px 24px;
+            animation: pop .25s ease;
+        }
+
+        @keyframes pop {
+            from {
+                transform: translateY(8px);
+                opacity: .0
+            }
+
+            to {
+                transform: none;
+                opacity: 1
+            }
+        }
+
+        h1 {
+            margin: 0 0 12px;
+            text-align: center;
+            font-size: 28px
+        }
+
+        p.sub {
+            margin: 0 0 18px;
+            text-align: center;
+            color: var(--muted)
+        }
+
+        .field {
+            margin-bottom: 14px
+        }
+
+        .label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px
+        }
+
+        .input {
+            width: 100%;
+            border: 1px solid var(--line);
+            background: #fff;
+            padding: 12px 14px;
+            border-radius: 12px;
+            outline: none;
+        }
+
+            .input:focus {
+                box-shadow: 0 0 0 4px rgba(99,102,241,.18);
+                border-color: #93c5fd
+            }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            align-items: center
+        }
+
+        .btn {
+            width: 100%;
+            border: 0;
+            padding: 12px 16px;
+            border-radius: 14px;
+            cursor: pointer;
+            background: var(--btn);
+            color: #fff;
+            font-weight: 700;
+            box-shadow: 0 10px 20px rgba(17,24,39,.18);
+        }
+
+        .meta {
+            margin-top: 12px;
+            color: var(--muted);
+            font-size: 12px;
+            text-align: center
+        }
+
+        .err {
+            margin-top: 10px;
+            color: #ef4444;
+            font-weight: 600;
+            text-align: center;
+            display: none
+        }
+
+        .right {
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .link {
+            color: #111827;
+            text-decoration: none;
+            font-weight: 600
+        }
+
+        .toggle {
+            appearance: none;
+            width: 38px;
+            height: 22px;
+            background: #e5e7eb;
+            border-radius: 999px;
+            position: relative;
+            outline: none;
+            cursor: pointer;
+        }
+
+            .toggle:checked {
+                background: #111827
+            }
+
+            .toggle::after {
+                content: "";
+                position: absolute;
+                top: 3px;
+                left: 3px;
+                width: 16px;
+                height: 16px;
+                background: #fff;
+                border-radius: 50%;
+                transition: .18s;
+                box-shadow: 0 2px 6px rgba(0,0,0,.15);
+            }
+
+            .toggle:checked::after {
+                left: 19px
+            }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Admin Login</h1>
+        <p class="sub">สำหรับผู้ดูแลระบบ carryMe</p>
+
+        <div class="field">
+            <label class="label">Username</label>
+            <input id="u" class="input" placeholder="admin" value="admin" autocomplete="username">
+        </div>
+        <div class="field">
+            <div class="right">
+                <label class="label" style="margin:0">Password</label>
+                <label class="row" style="font-size:12px; color:#475569; gap:8px">
+                   
+                </label>
+            </div>
+            <input id="p" type="password" class="input" placeholder="••••••••" value="1234" autocomplete="current-password">
+        </div>
+
+        <button id="btnLogin" type="button" class="btn">เข้าสู่ระบบแอดมิน</button>
+        <div id="err" class="err">เข้าสู่ระบบไม่สำเร็จ</div>
+
+        <div class="meta">ดีฟอลต์: <b>admin</b> / <b>1234</b> (เปลี่ยนค่าใน Program.cs ได้)</div>
+    </div>
+
+    <script>
+        const u = document.getElementById('u');
+        const p = document.getElementById('p');
+        const err = document.getElementById('err') || (() => { const d = document.createElement('div'); d.id = 'err'; d.style.display = 'none'; document.body.appendChild(d); return d; })();
+
+        // toggle แสดงรหัส
+        document.getElementById('togglePwd')?.addEventListener('change', e => {
+            p.type = e.target.checked ? 'text' : 'password';
+        });
+
+        async function login() {
+            err.style.display = 'none';
+            try {
+                const r = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ username: (u.value || '').trim(), password: p.value || '' })
+                });
+                if (!r.ok) { err.style.display = 'block'; err.textContent = 'เข้าสู่ระบบไม่สำเร็จ'; return; }
+                location.href = '/admin/dashboard.html';
+            } catch (ex) {
+                err.style.display = 'block'; err.textContent = 'เครือข่ายผิดพลาด';
+                console.error(ex);
+            }
+        }
+
+        document.getElementById('btnLogin')?.addEventListener('click', login);
+        [u, p].forEach(el => el?.addEventListener('keydown', e => { if (e.key === 'Enter') login(); }));
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,812 @@
+﻿<!doctype html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>carryMe – Admin</title>
+    <style>
+        :root {
+            --ink: #0f172a;
+            --muted: #64748b;
+            --line: #e2e8f0;
+            --bg: #f1f5f9;
+            --card: #fff;
+            --nav: #0f172a;
+            --accent: #1d4ed8;
+            --good: #10b981;
+            --bad: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font-family: Prompt,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+            color: var(--ink);
+            background: var(--bg)
+        }
+
+        header {
+            background: var(--nav);
+            color: #fff;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+            header h1 {
+                margin: 0;
+                font-size: 18px
+            }
+
+        .logout {
+            background: #fff;
+            color: #0f172a;
+            border: 1px solid #cbd5e1;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer
+        }
+
+        main {
+            padding: 22px;
+            max-width: 1100px;
+            margin: auto
+        }
+
+        .grid4 {
+            display: grid;
+            grid-template-columns: repeat(4,1fr);
+            gap: 12px;
+            margin-bottom: 16px
+        }
+
+        .kpi {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 14px;
+            box-shadow: 0 4px 14px rgba(0,0,0,.06)
+        }
+
+            .kpi .h {
+                color: var(--muted);
+                font-size: 13px
+            }
+
+            .kpi .v {
+                font-weight: 800;
+                font-size: 22px;
+                margin-top: 4px
+            }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin: 12px 0 16px
+        }
+
+        .tab {
+            border: 1px solid var(--line);
+            background: #fff;
+            padding: 8px 14px;
+            border-radius: 999px;
+            cursor: pointer;
+            font-weight: 700
+        }
+
+            .tab.active {
+                background: var(--accent);
+                color: #fff;
+                border-color: var(--accent)
+            }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 4px 14px rgba(0,0,0,.06)
+        }
+
+            .card h2 {
+                margin: 0 0 10px
+            }
+
+        table {
+            width: 100%;
+            border-collapse: collapse
+        }
+
+        th, td {
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+            padding: 9px 8px
+        }
+
+        th {
+            background: #f8fafc
+        }
+
+        tr:hover td {
+            background: #f1f5f9
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 0;
+            cursor: pointer;
+            font-weight: 700
+        }
+
+        .approve {
+            background: var(--good);
+            color: #fff
+        }
+
+        .reject {
+            background: var(--bad);
+            color: #fff
+        }
+
+        .ghost {
+            background: #eef2ff
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 8px
+        }
+
+        input, select {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 8px 10px
+        }
+
+        .note {
+            color: var(--muted);
+            font-size: 13px
+        }
+
+        .mt12 {
+            margin-top: 12px
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>carryMe • Admin</h1>
+        <button id="btnLogout" class="logout">ออกจากระบบ</button>
+    </header>
+
+    <main>
+        <!-- KPI -->
+        <section class="grid4" id="kpis">
+            <div class="kpi"><div class="h">รออนุมัติ</div><div class="v" id="kpiPending">-</div></div>
+            <div class="kpi"><div class="h">ผู้รับหิ้วที่อนุมัติ</div><div class="v" id="kpiApproved">-</div></div>
+            <div class="kpi"><div class="h">รายการรับหิ้ว</div><div class="v" id="kpiOrders">-</div></div>
+            <div class="kpi"><div class="h">ยอดระบบสะสม</div><div class="v" id="kpiEarning">-</div></div>
+        </section>
+
+        <!-- Tabs -->
+        <nav class="tabs">
+            <button class="tab active" data-tab="pending">การขออนุมัติผู้รับหิ้ว</button>
+            <button class="tab" data-tab="riders">จัดการข้อมูลผู้รับหิ้ว</button>
+            <button class="tab" data-tab="orders">รายการรับหิ้ว</button>
+            <button class="tab" data-tab="wallets">กระเป๋าเงิน</button>
+            <button class="tab" data-tab="topups">คำขอเติมเครดิต</button>
+            <button class="tab" data-tab="fees">จัดการค่าธรรมเนียม</button>
+            <button class="tab" data-tab="rejected">ผู้ถูกปฏิเสธ</button>
+
+        </nav>
+
+        <!-- Pending Riders -->
+        <section class="card" id="panel-pending">
+            <h2>คำขออนุมัติผู้รับหิ้ว</h2>
+            <div id="pendingBox" class="note">กำลังโหลด…</div>
+        </section>
+
+        <section class="card" id="panel-rejected" style="display:none">
+            <h2>ผู้ถูกปฏิเสธ</h2>
+            <div id="rejectedList" class="note">กำลังโหลด…</div>
+        </section>
+
+        <!-- Riders -->
+        <section class="card" id="panel-riders" style="display: none">
+            <h2>จัดการข้อมูลผู้รับหิ้ว</h2>
+
+            <div class="row">
+                <select id="riderFilter">
+                    <option value="">ทั้งหมด</option>
+                    <option value="1">เฉพาะที่อนุมัติ</option>
+                    <option value="0">เฉพาะที่รออนุมัติ</option>
+                </select>
+                <input id="riderQ" placeholder="ค้นหาชื่อ/เบอร์/username">
+                <button class="btn ghost" id="btnFindRiders">ค้นหา</button>
+            </div>
+
+            <div id="riderList" class="note">กำลังโหลด…</div>
+        </section>
+
+
+        <!-- Orders -->
+        <section class="card" id="panel-orders" style="display:none">
+            <h2>รายการรับหิ้ว</h2>
+            <div class="row">
+                <select id="orderFilter">
+                    <option value="">ทั้งหมด</option>
+                    <option>open</option>
+                    <option>claimed</option>
+                    <option>ongoing</option>
+                    <option>completed</option>
+                    <option>cancelled_by_customer</option>
+                    <option>cancelled_by_rider</option>
+                </select>
+                <button class="btn ghost" id="btnReloadOrders">รีเฟรช</button>
+            </div>
+            <div id="orderList" class="note">-</div>
+        </section>
+
+        <!-- Wallets -->
+        <section class="card" id="panel-wallets" style="display:none">
+            <h2>กระเป๋าเงินผู้รับหิ้ว</h2>
+            <div id="walletList" class="note">กำลังโหลด…</div>
+
+            <div class="mt12">
+                <div class="row">
+                    <input id="adjRider" type="number" placeholder="Rider ID">
+                    <input id="adjAmount" type="number" placeholder="จำนวนเงิน (+/-)">
+                    <input id="adjNote" placeholder="หมายเหตุ">
+                    <button class="btn approve" id="btnAdjust">บันทึกปรับยอด</button>
+                </div>
+                <div id="adjMsg" class="note"></div>
+            </div>
+        </section>
+
+        <!-- Topups -->
+        <section class="card" id="panel-topups" style="display:none">
+            <h2>คำขอเติมเครดิต</h2>
+            <div id="topupList" class="note">กำลังโหลด…</div>
+        </section>
+
+
+        <!-- Fees -->
+        <section class="card" id="panel-fees" style="display:none">
+            <h2>ค่าธรรมเนียมระบบ</h2>
+            <div id="feeBox" class="note">กำลังโหลด…</div>
+            <div class="row mt12">
+                <input id="fRate" type="number" step="0.01" placeholder="Platform Rate (เช่น 0.10)">
+                <input id="fBase" type="number" placeholder="Base Delivery">
+                <input id="fRain" type="number" placeholder="Rain Surcharge">
+                <button class="btn approve" id="btnSaveFee">บันทึก</button>
+            </div>
+            <div id="feeMsg" class="note"></div>
+        </section>
+
+        <div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:50">
+            <div style="width:min(520px,90%);background:#fff;border:1px solid #e2e8f0;border-radius:14px;box-shadow:0 16px 40px rgba(0,0,0,.2);padding:16px">
+                <h3 style="margin:0 0 10px">แก้ไขข้อมูลผู้รับหิ้ว</h3>
+                <div class="row"><label style="width:120px">ชื่อ</label><input id="edName"></div>
+                <div class="row"><label style="width:120px">เบอร์</label><input id="edPhone"></div>
+                <div class="row"><label style="width:120px">อีเมล</label><input id="edEmail"></div>
+                <div class="row"><label style="width:120px">Username</label><input id="edUser"></div>
+                <div class="row"><label style="width:120px">ที่อยู่</label><input id="edAddr" style="flex:1"></div>
+                <div class="row">
+                    <label style="width:120px">รหัสผ่านใหม่</label>
+                    <input id="edPass" type="password" placeholder="(เว้นว่างถ้าไม่เปลี่ยน)">
+                </div>
+
+                <div class="row">
+                    <label style="width:120px">สถานะ</label>
+                    <select id="edApproved"><option value="1">อนุมัติ</option><option value="0">รออนุมัติ</option></select>
+                </div>
+                <div class="row" style="justify-content:flex-end">
+                    <button class="btn" id="btnCancelEdit">ยกเลิก</button>
+                    <button class="btn approve" id="btnSaveEdit">บันทึก</button>
+                </div>
+                <div id="editMsg" class="note"></div>
+            </div>
+        </div>
+
+        <div id="detailModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);align-items:center;justify-content:center;z-index:60">
+            <div style="width:min(980px,95%);max-height:90vh;overflow:auto;background:#fff;border:1px solid #e2e8f0;border-radius:14px;box-shadow:0 16px 40px rgba(0,0,0,.2);padding:16px">
+                <h3 style="margin:0 0 10px">รายละเอียดผู้รับหิ้ว</h3>
+                <div id="detailBody" class="note">กำลังโหลด…</div>
+                <div style="text-align:right;margin-top:12px">
+                    <button class="btn" onclick="closeDetail()">ปิด</button>
+                </div>
+            </div>
+        </div>
+
+    </main>  <!-- ✅ ปิด main ตรงนี้ -->
+
+    <script>
+
+        // ===== util =====
+        const fmt = n => Number(n).toLocaleString('th-TH');
+        const money = n => fmt(n) + '฿';
+        const $ = sel => document.querySelector(sel);
+
+        // ===== tabs =====
+        document.querySelectorAll('.tab').forEach(t => {
+            t.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+                t.classList.add('active');
+                const id = t.dataset.tab;
+                document.querySelectorAll('section.card').forEach(s => s.style.display = 'none');
+                document.getElementById('panel-' + id).style.display = 'block';
+
+                // ✅ โหลดข้อมูลของแท็บนั้นๆ
+                if (id === 'pending') loadPending();
+                if (id === 'riders') loadRiders();
+                if (id === 'orders') loadOrders();
+                if (id === 'wallets') loadWallets();
+                if (id === 'fees') loadFees();
+                if (id === 'rejected') loadRejected();   // << เพิ่มบรรทัดนี้
+                if (id === 'topups') loadTopups();
+            });
+        });
+
+
+        // ===== KPIs =====
+        async function loadKPIs() {
+            const r = await fetch('/api/admin/stats', { credentials: 'include' });
+            if (!r.ok) return;
+            const s = await r.json();
+            $('#kpiPending').textContent = fmt(s.pending_riders ?? s.Pending_Riders ?? s.pending);
+            $('#kpiApproved').textContent = fmt(s.approved_riders ?? s.Approved_Riders ?? s.approved);
+            $('#kpiOrders').textContent = fmt(s.total_orders ?? s.Total_Orders ?? s.orders);
+            $('#kpiEarning').textContent = money(s.platform_earnings ?? s.Platform_Earnings ?? 0);
+        }
+
+        // ===== Pending riders (tab "การขออนุมัติผู้รับหิ้ว") =====
+        async function loadPending() {
+            const box = $('#pendingBox');
+            box.textContent = 'กำลังโหลด…';
+
+            const r = await fetch('/api/admin/riders/pending', { credentials: 'include' });
+            if (!r.ok) { box.textContent = 'ไม่ได้รับอนุญาต'; return; }
+
+            const data = await r.json();
+            if (!data.length) { box.textContent = 'ไม่มีคำขอ'; return; }
+
+            box.innerHTML = `
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th><th>ชื่อ</th><th>เบอร์</th><th>ผู้ใช้</th><th>กระเป๋า</th><th>สถานะ</th><th>จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${data.map(x => `
+                    <tr>
+                      <td>${x.id}</td>
+                      <td>${x.name || '-'}</td>
+                      <td>${x.phone || '-'}</td>
+                      <td>${x.username || '-'}</td>
+                      <td>${money(x.wallet || 0)}</td>
+                      <td>${x.is_approved == 1 ? '<span style="color:#10b981;font-weight:700">อนุมัติ</span>' : 'รออนุมัติ'}</td>
+                      <td>
+                        <button class="btn ghost" onclick="openDetail(${x.id})">ดูรายละเอียด</button>
+                        <button class="btn approve" onclick="approve(${x.id}, true)">อนุมัติ</button>
+                        <button class="btn reject"  onclick="approve(${x.id}, false)">ปฏิเสธ</button>
+                      </td>
+                    </tr>`).join('')}
+                </tbody>
+              </table>`;
+
+            }
+
+        async function loadRejected() {
+            const box = document.getElementById('rejectedList');
+            box.textContent = 'กำลังโหลด…';
+
+            try {
+                const r = await fetch('/api/admin/riders/rejected', { credentials: 'include' });
+                if (!r.ok) { box.textContent = 'ไม่ได้รับอนุญาต'; return; }
+
+                const data = await r.json();
+                if (!data || data.length === 0) { box.textContent = 'ไม่พบข้อมูล'; return; }
+
+                box.innerHTML = `
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>ID</th><th>ชื่อ</th><th>เบอร์</th><th>ผู้ใช้</th>
+                        <th>เหตุผลที่ถูกปฏิเสธ</th><th>จัดการ</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${data.map(x => `
+                        <tr>
+                          <td>${x.id}</td>
+                          <td>${x.name || '-'}</td>
+                          <td>${x.phone || '-'}</td>
+                          <td>${x.username || '-'}</td>
+                          <td>${x.reject_reason || '-'}</td>
+                          <td>
+                            <button class="btn ghost" onclick="openDetail(${x.id})">ดูรายละเอียด</button>
+                            <button class="btn approve" onclick="approve(${x.id}, true)">อนุมัติอีกครั้ง</button>
+                          </td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>`;
+            } catch (e) {
+                box.textContent = 'เกิดข้อผิดพลาดในการโหลด';
+                console.error(e);
+            }
+        }
+
+
+        async function approve(id, ok) {
+            if (ok) {
+                if (!confirm('อนุมัติผู้รับหิ้วนี้?')) return;
+
+                const r = await fetch(`/api/admin/riders/${id}/approve`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+
+                if (!r.ok) { alert('อนุมัติไม่สำเร็จ'); return; }
+
+            } else {
+                // บังคับกรอกเหตุผล
+                let reason = prompt('ระบุเหตุผลการปฏิเสธ:');
+                if (reason === null) return;               // ผู้ใช้กดยกเลิก
+                reason = reason.trim();
+                if (!reason) { alert('กรุณาระบุเหตุผล'); return; }
+
+                const r = await fetch(`/api/admin/riders/${id}/reject`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ reason })
+                });
+
+                if (!r.ok) {
+                    const j = await r.json().catch(() => ({}));
+                    alert(j?.error || 'ปฏิเสธไม่สำเร็จ');
+                    return;
+                }
+            }
+
+            // ✅ รีเฟรชหน้าจอหลังทำรายการสำเร็จ
+            await loadPending();
+            await loadRiders();   // เผื่อมีแท็บ "จัดการข้อมูลผู้รับหิ้ว"
+            await loadKPIs();
+
+            // (ออปชัน) ถ้าอยากสลับไปแท็บจัดการข้อมูลผู้รับหิ้ว
+            // document.querySelector('[data-tab="riders"]').click();
+        }
+
+
+
+        // ===== Riders list =====
+        async function loadRiders() {
+            const approved = $('#riderFilter').value || '';
+            const q = ($('#riderQ').value || '').trim();
+            const url = `/api/admin/riders/list?approved=${encodeURIComponent(approved)}&q=${encodeURIComponent(q)}`;
+            const r = await fetch(url, { credentials: 'include' });
+            const box = $('#riderList');
+            if (!r.ok) { box.textContent = 'ไม่ได้รับอนุญาต'; return; }
+            const data = await r.json();
+            if (!data.length) { box.textContent = 'ไม่พบข้อมูล'; return; }
+            box.innerHTML = `
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th><th>ชื่อ</th><th>เบอร์</th><th>ผู้ใช้</th>
+                    <th>กระเป๋า</th><th>สถานะ</th><th>จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${data.map(x => `
+                    <tr>
+                      <td>${x.id}</td>
+                      <td>${x.name || '-'}</td>
+                      <td>${x.phone || '-'}</td>
+                      <td>${x.username || '-'}</td>
+                      <td>${money(x.wallet || 0)}</td>
+                      <td>${x.is_approved == 1
+                                ? '<span style="color:#10b981;font-weight:700">อนุมัติ</span>'
+                                : 'รออนุมัติ'}</td>
+                      <td>
+                        <button class="btn ghost"   onclick="openDetail(${x.id})">ดูรายละเอียด</button>
+                        <button class="btn approve" onclick="openEdit(${x.id})">แก้ไข</button>
+                      </td>
+                    </tr>`).join('')}
+                </tbody>
+              </table>`;
+
+        }
+        $('#btnFindRiders').onclick = loadRiders;
+
+        // ===== Orders =====
+        async function loadOrders() {
+            const status = ($('#orderFilter').value || '').trim();
+            const url = status
+                ? `/api/admin/orders/list?status=${encodeURIComponent(status)}`
+                : `/api/admin/orders/list`;
+
+            const r = await fetch(url, { credentials: 'include' });
+            const box = $('#orderList');
+            if (!r.ok) { box.textContent = 'ไม่ได้รับอนุญาต'; return; }
+
+            const data = await r.json();
+            if (!data.length) { box.textContent = 'ไม่มีรายการ'; return; }
+
+            box.innerHTML = `
+                <table>
+                  <thead>
+                    <tr>
+                      <th>รหัส</th><th>สถานะ</th><th>ชื่อผู้ฝาก</th>
+                      <th>ร้านค้า</th><th>ปลายทาง</th><th>ไรเดอร์</th>
+                      <th>ยอดรวม</th><th>ค่าธรรมเนียมระบบ</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${data.map(o => `
+                      <tr>
+                        <td>${o.code}</td>
+                        <td>${o.status}</td>
+                        <td>${o.customer_name || '-'}</td>
+                        <td>${o.shop || '-'}</td>
+                        <td>${o.dropoff || '-'}</td>
+                        <td>${o.rider_name || '-'}</td>
+                        <td>${(o.subtotal ?? 0).toFixed(2)}฿</td>
+                        <td>${(o.platform_fee ?? 0).toFixed(2)}฿</td>
+                      </tr>`).join('')}
+                  </tbody>
+                </table>`;
+            }
+
+
+
+        $('#btnReloadOrders').onclick = loadOrders;
+
+        // ===== Wallets =====
+        async function loadWallets() {
+            const box = $('#walletList');
+            const r = await fetch('/api/admin/wallets', { credentials: 'include' });
+            if (!r.ok) { box.textContent = 'ไม่ได้รับอนุญาต'; return; }
+            const data = await r.json();
+            if (!data.length) { box.textContent = 'ไม่มีข้อมูล'; return; }
+            box.innerHTML = `
+                      <table>
+                        <thead><tr><th>ID</th><th>ชื่อ</th><th>ยอดคงเหลือ</th></tr></thead>
+                        <tbody>${data.map(x => `
+                          <tr><td>${x.riderId}</td><td>${x.name}</td><td>${money(x.balance)}</td></tr>`).join('')}
+                        </tbody>
+                      </table>`;
+        }
+        $('#btnAdjust').onclick = async () => {
+            const rid = Number($('#adjRider').value);
+            const amt = Number($('#adjAmount').value);
+            const note = $('#adjNote').value || '';
+
+            if (!rid || isNaN(amt) || amt === 0) {
+                $('#adjMsg').textContent = 'กรอก Rider ID และจำนวนเงิน (บวก/ลบ)';
+                return;
+            }
+
+            try {
+                const r = await fetch('/api/admin/wallets/adjust', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ riderId: rid, amount: amt, note })
+                });
+                const j = await r.json().catch(() => ({}));
+                if (r.ok) {
+                    const newBal = (j.balance ?? 0);
+                    $('#adjMsg').textContent = `✅ สำเร็จ! ยอดคงเหลือใหม่: ${newBal.toFixed ? newBal.toFixed(2) : newBal} บาท`;
+                    loadWallets(); loadRiders(); loadKPIs();
+                } else {
+                    $('#adjMsg').textContent = j?.error || '❌ บันทึกไม่สำเร็จ';
+                }
+            } catch (err) {
+                $('#adjMsg').textContent = '⚠️ เกิดข้อผิดพลาด: ' + err.message;
+            }
+        };
+
+
+
+        // ===== Fees =====
+        async function loadFees() {
+            const r = await fetch('/api/admin/fees', { credentials: 'include' });
+            if (!r.ok) { $('#feeBox').textContent = 'ไม่ได้รับอนุญาต'; return; }
+            const f = await r.json();
+            $('#feeBox').innerHTML = `
+                      <div>Platform Rate: <b>${f.platform_rate ?? f.PlatformRate}</b></div>
+                      <div>Base Delivery: <b>${f.base_delivery ?? f.BaseDelivery}฿</b></div>
+                      <div>Rain Surcharge: <b>${f.rain_surcharge ?? f.RainSurcharge}฿</b></div>`;
+            $('#fRate').value = f.platform_rate ?? f.PlatformRate ?? 0.1;
+            $('#fBase').value = f.base_delivery ?? f.BaseDelivery ?? 20;
+            $('#fRain').value = f.rain_surcharge ?? f.RainSurcharge ?? 10;
+        }
+        $('#btnSaveFee').onclick = async () => {
+            const payload = {
+                PlatformRate: parseFloat($('#fRate').value || '0'),
+                BaseDelivery: parseFloat($('#fBase').value || '0'),
+                RainSurcharge: parseFloat($('#fRain').value || '0')
+            };
+            const r = await fetch('/api/admin/fees', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(payload) });
+            $('#feeMsg').textContent = r.ok ? 'บันทึกค่าธรรมเนียมแล้ว' : 'บันทึกไม่สำเร็จ';
+            if (r.ok) { loadFees(); loadKPIs(); }
+        };
+
+        // ===== Logout =====
+        $('#btnLogout').onclick = async () => {
+            await fetch('/api/admin/logout', { method: 'POST', credentials: 'include' });
+            location.href = '/admin/login.html';
+        };
+
+        // ===== init =====
+        loadKPIs(); loadPending(); loadRiders(); loadOrders(); loadWallets(); loadFees();
+
+        let editingId = null;
+
+        async function openEdit(id) {
+            editingId = id;
+            $('#editMsg').textContent = '';
+            const r = await fetch(`/api/admin/riders/${id}`, { credentials: 'include' });
+            if (!r.ok) { alert('โหลดข้อมูลไม่สำเร็จ'); return; }
+            const x = await r.json();
+            $('#edName').value = x.name || '';
+            $('#edPhone').value = x.phone || '';
+            $('#edEmail').value = x.email || '';
+            $('#edUser').value = x.username || '';
+            $('#edAddr').value = x.address || '';
+            $('#edApproved').value = String(x.is_approved ?? 0);
+            $('#editModal').style.display = 'flex';
+        }
+
+        $('#btnCancelEdit').onclick = () => { $('#editModal').style.display = 'none'; };
+
+        $('#btnSaveEdit').onclick = async () => {
+            const passRaw = ($('#edPass') && $('#edPass').value.trim()) || '';
+
+            const payload = {
+                name: $('#edName').value,
+                phone: $('#edPhone').value,
+                email: $('#edEmail').value,
+                username: $('#edUser').value,
+                address: $('#edAddr').value,
+                is_approved: Number($('#edApproved').value),   // << ใส่คอมมาตรงนี้
+                password: passRaw || null                      // เว้นว่างจะได้ไม่เปลี่ยน
+            };
+
+            const r = await fetch(`/api/admin/riders/${editingId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(payload)
+            });
+            const j = await r.json().catch(() => ({}));
+            if (r.ok) {
+                $('#editMsg').textContent = 'บันทึกแล้ว';
+                loadRiders(); loadPending(); loadKPIs();
+                setTimeout(() => $('#editModal').style.display = 'none', 400);
+            } else {
+                $('#editMsg').textContent = j?.error || 'บันทึกไม่สำเร็จ';
+            }
+        };
+
+
+        async function openDetail(id) {
+            const m = document.getElementById('detailModal');
+            const body = document.getElementById('detailBody');
+            body.textContent = 'กำลังโหลด…';
+            m.style.display = 'flex';
+
+            const r = await fetch(`/api/admin/riders/${id}/detail`, { credentials: 'include' });
+            if (!r.ok) { body.textContent = 'โหลดข้อมูลไม่สำเร็จ'; return; }
+            const x = await r.json();
+
+            const imgOrDash = (url, label) => `
+                <div style="flex:1;min-width:260px">
+                  <div style="font-weight:700;margin-bottom:6px">${label}</div>
+                 ${url
+                    ? `<a href="${url}" target="_blank"><img src="${url}" alt="${label}" style="width:100%;max-height:260px;object-fit:contain;border:1px solid #e2e8f0;border-radius:10px"/></a>`
+                    : '<div class="note">- ไม่มีไฟล์ -</div>'}
+                </div>`;
+
+            body.innerHTML = `
+                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:12px">
+                  <div><div class="note">ชื่อ</div><div style="font-weight:700">${x.name || '-'}</div></div>
+                  <div><div class="note">เบอร์</div><div>${x.phone || '-'}</div></div>
+                  <div><div class="note">อีเมล</div><div>${x.email || '-'}</div></div>
+                  <div><div class="note">Username</div><div>${x.username || '-'}</div></div>
+                  <div style="grid-column:1/3"><div class="note">ที่อยู่</div><div>${x.address || '-'}</div></div>
+                  <div><div class="note">สถานะ</div><div>${x.is_approved == 1 ? 'อนุมัติ' : 'รออนุมัติ'}</div></div>
+                  <div><div class="note">กระเป๋า</div><div>${money(x.wallet || 0)}</div></div>
+
+                  ${x.reject_reason
+                    ? `<div style="grid-column:1/3">
+                         <div class="note" style="color:#b91c1c">เหตุผลที่ถูกปฏิเสธ</div>
+                         <div style="background:#fee2e2;padding:8px;border-radius:6px;color:#991b1b">
+                           ${x.reject_reason}
+                         </div>
+                       </div>`
+                  : ''}
+                  </div>
+                <div style="display:flex;gap:12px;flex-wrap:wrap">
+                  ${imgOrDash(x.vehicle_photo_url, 'รูปยานพาหนะ')}
+                  ${imgOrDash(x.prb_doc_url, 'เอกสาร พ.ร.บ.')}
+                  ${imgOrDash(x.national_id_card_url, 'รูปบัตรประชาชน')}
+                </div>`;
+        }
+        function closeDetail() { document.getElementById('detailModal').style.display = 'none'; }
+
+        // ===== Topups =====
+        async function loadTopups() {
+            const box = document.getElementById('topupList');
+            box.textContent = 'กำลังโหลด…';
+
+            try {
+                const r = await fetch('/api/admin/topups?status=pending', { credentials: 'include' });
+                if (!r.ok) { box.textContent = 'ไม่ได้รับอนุญาต'; return; }
+
+                const data = await r.json();
+                if (!data.length) { box.textContent = 'ไม่มีคำขอเติมเครดิต'; return; }
+
+                box.innerHTML = `
+      <table>
+        <thead>
+          <tr><th>ID</th><th>ชื่อ</th><th>จำนวน</th><th>สลิป</th><th>เวลา</th><th>จัดการ</th></tr>
+        </thead>
+        <tbody>
+          ${data.map(t => `
+            <tr>
+              <td>${t.id}</td>
+              <td>${t.rider_name || '-'}</td>
+              <td>${t.amount}฿</td>
+              <td>${t.slip_url ? `<a href="${t.slip_url}" target="_blank"><img src="${t.slip_url}" style="height:70px;border-radius:6px;border:1px solid #ccc"></a>` : '-'}</td>
+              <td>${new Date(t.created_at).toLocaleString()}</td>
+              <td>
+                <button class="btn approve" onclick="approveTopup(${t.id})">อนุมัติ</button>
+                <button class="btn reject" onclick="rejectTopup(${t.id})">ปฏิเสธ</button>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+            } catch (e) {
+                box.textContent = 'เกิดข้อผิดพลาด';
+            }
+        }
+
+        async function approveTopup(id) {
+            if (!confirm('ยืนยันอนุมัติคำขอนี้?')) return;
+            const r = await fetch(`/api/admin/topups/${id}/approve`, { method: 'POST', credentials: 'include' });
+            if (!r.ok) { alert('อนุมัติไม่สำเร็จ'); return; }
+            alert('✅ อนุมัติแล้ว');
+            loadTopups(); loadWallets(); loadKPIs();
+        }
+
+        async function rejectTopup(id) {
+            let reason = prompt('เหตุผลการปฏิเสธ:');
+            if (!reason) return;
+            const r = await fetch(`/api/admin/topups/${id}/reject`, {
+                method: 'POST', credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reason })
+            });
+            if (!r.ok) { alert('ปฏิเสธไม่สำเร็จ'); return; }
+            alert('❌ ปฏิเสธแล้ว');
+            loadTopups();
+        }
+
+
+    </script>
+</body>
+</html>

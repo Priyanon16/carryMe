@@ -1,0 +1,263 @@
+﻿<!doctype html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>carryMe – เลือกการใช้งาน</title>
+    <meta name="color-scheme" content="light dark">
+    <style>
+        :root {
+            --ink: #0f172a;
+            --muted: #64748b;
+            --card: #ffffff;
+            --line: #e5e7eb;
+            --grad1: #ff8a3d;
+            --grad2: #6c63ff;
+            --btn: #0ea5e9;
+            --btn2: #0f172a;
+            --radius: 18px
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html, body {
+            height: 100%
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui,-apple-system,"Segoe UI","Prompt",sans-serif;
+            color: var(--ink);
+            background: linear-gradient(120deg,var(--grad1),var(--grad2));
+            background-attachment: fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px
+        }
+
+        .wrap {
+            width: min(980px,100%);
+            background: rgba(255,255,255,.82);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,.6);
+            border-radius: 28px;
+            box-shadow: 0 18px 40px rgba(0,0,0,.12);
+            padding: 28px 22px 26px
+        }
+
+        h1 {
+            margin: 0 0 6px;
+            text-align: center;
+            font-size: 34px
+        }
+
+        .sub {
+            color: var(--muted);
+            text-align: center;
+            margin-bottom: 18px
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width:840px) {
+            .grid {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 18px;
+            box-shadow: 0 8px 24px rgba(0,0,0,.06)
+        }
+
+            .card h2 {
+                margin: 4px 0 10px;
+                font-size: 20px
+            }
+
+            .card p {
+                margin: 0 0 14px;
+                color: var(--muted);
+                line-height: 1.6
+            }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: 0;
+            border-radius: 14px;
+            padding: 12px 16px;
+            font-weight: 800;
+            cursor: pointer;
+            text-decoration: none
+        }
+
+            .btn.primary {
+                background: #ff7a1a;
+                color: #fff
+            }
+
+            .btn.dark {
+                background: var(--btn2);
+                color: #fff
+            }
+
+            .btn.ghost {
+                background: #eef2ff;
+                color: #0f172a
+            }
+
+            .btn + .btn {
+                margin-left: 8px
+            }
+
+        .hstack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px
+        }
+
+        .track {
+            margin-top: 18px;
+            padding: 12px;
+            background: #f8fafc;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            display: flex;
+            gap: 10px;
+            align-items: center
+        }
+
+            .track input {
+                flex: 1;
+                padding: 11px 12px;
+                border: 1px solid var(--line);
+                border-radius: 10px;
+                background: #fff;
+                outline: none
+            }
+
+                .track input:focus {
+                    box-shadow: 0 0 0 3px rgba(14,165,233,.15);
+                    border-color: #93c5fd
+                }
+
+        .note {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 6px
+        }
+
+        .footer {
+            margin-top: 18px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px
+        }
+
+        .pill {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #eef2ff;
+            color: #1f2a59;
+            font-weight: 700;
+            font-size: 12px
+        }
+    </style>
+</head>
+<body>
+    <main class="wrap">
+        <h1>ฝากหิ้ว</h1>
+        <div class="sub">คุณต้องการใช้งานในฐานะใด?</div>
+
+        <section class="grid">
+            <!-- ฝั่งลูกค้า -->
+            <div class="card">
+                <h2>ฝากหิ้ว</h2>
+                <p>กรอกรายการที่อยากได้ ระบุงบประมาณและปลายทาง ระบบจะเปิดออเดอร์เพื่อให้ผู้รับหิ้วรับงาน</p>
+                <div class="hstack">
+                    <a class="btn primary" href="/customer/index.html">เริ่มฝากหิ้วตอนนี้</a>
+      
+                </div>
+
+                <div class="track">
+                    <span class="pill">ติดตามสถานะ</span>
+                    <input id="trackCode" placeholder="ใส่รหัสออเดอร์ เช่น A006" />
+                    <button class="btn dark" id="btnTrack">ดูสถานะ</button>
+                </div>
+                <div class="note">ระบบคิดค่าส่ง 10 บ. พื้นที่ห่างไกล +10 บ. ฝนตก + 10 บ.</div>
+            </div>
+
+            <!-- ฝั่งผู้รับหิ้ว -->
+            <div class="card">
+                <h2>รับหิ้ว</h2>
+                <p>ดูออเดอร์ที่รอรับหิ้ว จัดการงานผ่านแดชบอร์ด แจ้งราคาสินค้าจริง ติ๊กฝนตก/ไกล</p>
+                <div class="hstack" id="riderActions">
+                    <!-- จะถูกแทนที่ด้วยปุ่มตามสถานะล็อกอิน -->
+                    <a class="btn dark" href="/rider/login.html">เข้าสู่ระบบ</a>
+                    <a class="btn ghost" href="/rider/register.html">สมัครผู้รับหิ้ว</a>
+                </div>
+
+                <div class="hstack" style="margin-top:8px">
+                    <a class="btn ghost" href="/admin/login.html" id="adminLoginBtn">เข้าสู่ระบบแอดมิน</a>
+                    <a class="btn dark" href="/admin/panel.html" id="adminPanelBtn" style="display:none">ไปหน้าแอดมิน</a>
+                </div>
+
+
+
+                <div class="note">เข้าสู่ระบบแล้วจะเห็นปุ่ม “ไปแดชบอร์ด” และสามารถรับงานได้ทันที</div>
+            </div>
+        </section>
+
+        <div class="footer">
+            © carryMe — ระบบฝากหิ้วอย่างง่าย • 
+        </div>
+    </main>
+
+    <script>
+        // ติดตามสถานะโดยพาไปหน้า /customer/order.html?code=XXX
+        const codeInput = document.getElementById('trackCode');
+        document.getElementById('btnTrack').addEventListener('click', () => {
+            const c = (codeInput.value || '').trim().toUpperCase();
+            if (!c) { codeInput.focus(); return; }
+            location.href = '/customer/order.html?code=' + encodeURIComponent(c);
+        });
+        codeInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') document.getElementById('btnTrack').click();
+        });
+
+        // เช็คว่าผู้รับหิ้วล็อกอินอยู่ไหม -> ปรับปุ่มให้เป็น "ไปแดชบอร์ด"
+        (async () => {
+            try {
+                const r = await fetch('/api/rider/summary', { credentials: 'include' });
+                if (r.ok) {
+                    const box = document.getElementById('riderActions');
+                    box.innerHTML = `
+                <a class="btn dark" href="/rider/dashboard.html">ไปแดชบอร์ด</a>
+                <a class="btn ghost" href="/rider/logout.html" id="logoutBtn">ออกจากระบบ</a>
+              `;
+                    const lb = document.getElementById('logoutBtn');
+                    lb?.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        await fetch('/api/riders/logout', { method: 'POST' });
+                        location.reload();
+                    });
+                }
+            } catch { }
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+﻿<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ติดตามออเดอร์ - carryMe</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background: #f7f8fa;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 420px;
+            margin-top: 40px;
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: #ff6600;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+            button:hover {
+                background: #e65c00;
+            }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f1f1f1;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .status {
+            font-weight: bold;
+            color: #ff6600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>ติดตามออเดอร์</h2>
+        <form id="trackForm">
+            <label for="code">รหัสออเดอร์</label>
+            <input type="text" id="code" name="code" placeholder="เช่น A001" required>
+            <button type="submit">ตรวจสอบสถานะ</button>
+        </form>
+
+        <div id="result" class="result" style="display:none;"></div>
+    </div>
+
+    <script>
+        document.getElementById("trackForm").addEventListener("submit", async e => {
+            e.preventDefault();
+            let code = document.getElementById("code").value.trim();
+            if (!code) return;
+
+            let res = await fetch("/api/orders/" + code);
+            let box = document.getElementById("result");
+            if (res.ok) {
+                let data = await res.json();
+                box.style.display = "block";
+                box.innerHTML = `
+              <p><b>รหัส:</b> ${data.order.Code}</p>
+              <p><b>ผู้ฝาก:</b> ${data.order.CustomerName}</p>
+              <p><b>ปลายทาง:</b> ${data.order.Dropoff}</p>
+              <p><b>สถานะ:</b> <span class="status">${data.order.Status}</span></p>
+            `;
+            } else {
+                box.style.display = "block";
+                box.innerHTML = `<p style="color:red;">❌ ไม่พบออเดอร์</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

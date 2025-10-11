@@ -1,0 +1,135 @@
+﻿<!doctype html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>เข้าสู่ระบบผู้รับหิ้ว – carryMe</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Prompt', system-ui, sans-serif;
+            background: linear-gradient(135deg, #dbeafe, #eff6ff);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-card {
+            background: #fff;
+            border-radius: 22px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            padding: 40px 32px;
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            animation: fadeIn 0.6s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 26px;
+            margin-bottom: 10px;
+            color: #0f172a;
+        }
+
+        p.subtitle {
+            color: #64748b;
+            font-size: 15px;
+            margin-bottom: 24px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            font-size: 15px;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+            input:focus {
+                border-color: #2563eb;
+                box-shadow: 0 0 0 3px #bfdbfe;
+            }
+
+        .btn {
+            width: 100%;
+            background: #2563eb;
+            color: white;
+            border: 0;
+            border-radius: 12px;
+            padding: 14px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+            .btn:hover {
+                background: #1e40af;
+            }
+
+        .sample {
+            margin-top: 14px;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+            .sample code {
+                background: #f1f5f9;
+                padding: 2px 6px;
+                border-radius: 6px;
+            }
+    </style>
+</head>
+<body>
+    <form class="login-card" id="loginForm">
+        <h1>เข้าสู่ระบบผู้รับหิ้ว</h1>
+        <p class="subtitle">กรอกชื่อผู้ใช้และรหัสผ่านเพื่อเข้าสู่ระบบ</p>
+        <input id="username" name="username" placeholder="Username" required />
+        <input id="password" name="password" type="password" placeholder="Password" required />
+        <button class="btn" type="submit">เข้าสู่ระบบ</button>
+        <div class="sample">ตัวอย่าง: <code>rider1</code> / <code>1234</code></div>
+    </form>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = e.target.username.value.trim();
+            const password = e.target.password.value.trim();
+
+            const r = await fetch('/api/riders/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await r.json();
+            if (r.ok && data.ok) {
+                alert('เข้าสู่ระบบสำเร็จ');
+                location.href = '/rider/dashboard.html';
+            } else {
+                alert('เข้าสู่ระบบไม่สำเร็จ: ' + (data.error || 'ไม่ทราบสาเหตุ'));
+            }
+        });
+    </script>
+</body>
+</html>

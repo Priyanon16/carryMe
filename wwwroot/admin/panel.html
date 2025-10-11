@@ -1,0 +1,181 @@
+﻿<!doctype html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Panel – carryMe</title>
+    <style>
+        :root {
+            --ink: #0f172a;
+            --muted: #64748b;
+            --line: #e5e7eb;
+            --panel: #fff;
+            --btn: #0f2347;
+            --green: #16a34a;
+            --red: #ef4444
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui,-apple-system,Segoe UI,Roboto,Prompt,sans-serif;
+            background: #f5f6fb;
+            color: var(--ink)
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 18px;
+            background: #fff;
+            border-bottom: 1px solid var(--line)
+        }
+
+        .wrap {
+            max-width: 980px;
+            margin: 14px auto;
+            padding: 0 16px
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            box-shadow: 0 8px 20px rgba(0,0,0,.05);
+            padding: 14px
+        }
+
+        h2 {
+            margin: 0 0 10px
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse
+        }
+
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+            font-size: 14px
+        }
+
+        .btn {
+            border: 0;
+            border-radius: 10px;
+            padding: 8px 10px;
+            color: #fff;
+            cursor: pointer;
+            font-weight: 700
+        }
+
+        .approve {
+            background: var(--green)
+        }
+
+        .reject {
+            background: var(--red)
+        }
+
+        .topup {
+            background: #0ea5e9
+        }
+
+        .logout {
+            background: #111827;
+            color: #fff;
+            border: 0;
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-weight: 800;
+            cursor: pointer
+        }
+
+        input[type=number] {
+            width: 120px;
+            padding: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div><b>carryMe</b> • Admin Panel</div>
+        <button class="logout" id="logout">ออกจากระบบ</button>
+    </header>
+
+    <main class="wrap">
+        <div class="card">
+            <h2>ผู้รับหิ้วรออนุมัติ</h2>
+            <div id="list" class="meta">กำลังโหลด…</div>
+            <table id="tbl" style="display:none">
+                <thead>
+                    <tr><th>ID</th><th>ชื่อ</th><th>เบอร์</th><th>อีเมล</th><th>ยูสเซอร์</th><th>กระเป๋า (฿)</th><th>เติมเครดิต</th><th>การทำงาน</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+    const $ = s=>document.querySelector(s);
+    const list = $('#list'), tbl = $('#tbl'), tbody = $('#tbl tbody');
+
+    async function j(url,opt){const r=await fetch(url,opt); if(!r.ok) throw new Error(await r.text()||r.status); return r.json();}
+
+    async function load(){
+      try{
+        await j('/api/admin/me'); // ตรวจว่าเป็นแอดมิน
+      }catch(e){ location.href='/admin/login.html'; return; }
+
+      const rows = await j('/api/admin/riders/pending');
+      if(!rows.length){ list.textContent='ไม่มีผู้สมัครรออนุมัติ'; tbl.style.display='none'; return; }
+      list.style.display='none'; tbl.style.display='table';
+      tbody.innerHTML = rows.map(r=>`
+        <tr>
+          <td>${r.id}</td>
+          <td>${r.name||'-'}</td>
+          <td>${r.phone||'-'}</td>
+          <td>${r.email||'-'}</td>
+          <td>${r.username}</td>
+          <td>${(r.wallet??0).toFixed(2)}</td>
+          <td>
+            <input type="number" min="1" step="1" id="top_${r.id}" placeholder="จำนวน">
+            <button class="btn topup" onclick="topup(${r.id})">เติม</button>
+          </td>
+          <td>
+            <button class="btn approve" onclick="approve(${r.id})">อนุมัติ</button>
+            <button class="btn reject"  onclick="rejectR(${r.id})">ปฏิเสธ</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function approve(id){ if(!confirm('อนุมัติผู้รับหิ้ว #' + id + ' ?')) return;
+      await j('/api/admin/riders/'+id+'/approve',{method:'POST'}); alert('อนุมัติแล้ว'); load(); }
+
+    async function rejectR(id){ if(!confirm('ลบคำขอของ #' + id + ' ?')) return;
+      await j('/api/admin/riders/'+id+'/reject',{method:'POST'}); alert('ลบแล้ว'); load(); }
+
+    async function topup(id){
+      const v = Number(document.getElementById('top_'+id).value||'0');
+      if(!(v>0)) return alert('ใส่จำนวนที่ถูกต้อง');
+      await j('/api/admin/riders/'+id+'/topup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount:v})});
+      alert('เติมเครดิตแล้ว'); load();
+    }
+
+    document.getElementById('logout').onclick = async()=>{
+      await fetch('/api/admin/logout',{method:'POST'});
+      location.href='/admin/login.html';
+    };
+
+    load();
+    </script>
+</body>
+</html>

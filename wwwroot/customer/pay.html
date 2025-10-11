@@ -1,0 +1,135 @@
+﻿<!doctype html>
+<html lang="th">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>ชำระเงิน – carryMe</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, 'Prompt', sans-serif;
+            background: #f9fafb;
+            margin: 0;
+            color: #0f172a;
+        }
+
+        .card {
+            background: #fff;
+            max-width: 420px;
+            margin: 80px auto;
+            border-radius: 14px;
+            box-shadow: 0 4px 20px rgba(0,0,0,.08);
+            padding: 24px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 16px;
+            color: #1f4396;
+        }
+
+        .info {
+            background: #f1f5f9;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 15px;
+            margin-bottom: 16px;
+        }
+
+        .label {
+            font-weight: 600;
+        }
+
+        .input {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            margin-bottom: 14px;
+        }
+
+        .btn {
+            width: 100%;
+            background: #1f4396;
+            color: #fff;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+            .btn:hover {
+                background: #18367a;
+            }
+
+        .success {
+            text-align: center;
+            color: #059669;
+            font-weight: 600;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>ชำระเงิน</h1>
+        <div class="info">
+            <div><span class="label">รหัสออเดอร์:</span> <span id="orderCode">-</span></div>
+            <div><span class="label">ยอดที่ต้องชำระ:</span> <span id="amount">-</span> บาท</div>
+        </div>
+        <div>
+            <label class="label">ช่องทางชำระ</label>
+            <select id="method" class="input">
+                <option value="wallet">เป๋าตัง</option>
+                <option value="bank">โอนผ่านบัญชีธนาคาร</option>
+                <option value="cod">จ่ายปลายทาง</option>
+            </select>
+
+            <label class="label">แนบหลักฐาน (ถ้ามี)</label>
+            <input type="file" id="proof" class="input">
+
+            <button class="btn" onclick="pay()">ยืนยันการชำระ</button>
+            <div class="success" id="doneMsg">✅ ชำระเงินสำเร็จแล้ว!</div>
+        </div>
+    </div>
+
+    <script>
+        // โหลดรายละเอียดออเดอร์จาก query string
+        const code = new URLSearchParams(location.search).get('code');
+        document.getElementById('orderCode').textContent = code ?? '-';
+
+        async function loadOrder() {
+            if (!code) return;
+            const r = await fetch('/api/customer/orders/' + code);
+            if (!r.ok) return;
+            const data = await r.json();
+            document.getElementById('amount').textContent = data?.total ?? data?.budget ?? 0;
+        }
+
+        async function pay() {
+            const method = document.getElementById('method').value;
+            const proofFile = document.getElementById('proof').files[0];
+
+            const formData = new FormData();
+            formData.append('method', method);
+            if (proofFile) formData.append('proof', proofFile);
+
+            const res = await fetch('/api/customer/orders/' + code + '/pay', {
+                method: 'POST',
+                body: formData
+            });
+            if (res.ok) {
+                document.getElementById('doneMsg').style.display = 'block';
+            } else {
+                alert('ชำระเงินไม่สำเร็จ');
+            }
+        }
+
+        loadOrder();
+    </script>
+</body>
+</html>

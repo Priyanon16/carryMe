@@ -1,0 +1,148 @@
+﻿<!doctype html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>carryMe – ยกเลิกออร์เดอร์</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: sans-serif;
+            background: #f9fafb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 20px;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: 0 8px 24px rgba(0,0,0,.08)
+        }
+
+        h2 {
+            margin: 0 0 16px
+        }
+
+        label {
+            display: block;
+            margin: 8px 0;
+            font-size: 15px
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: 0;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer
+        }
+
+        .danger {
+            background: #ef4444;
+            color: #fff
+        }
+
+        .muted {
+            background: #e5e7eb
+        }
+
+        .note {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 6px
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2 id="title">ยกเลิกออร์เดอร์</h2>
+
+        <form id="cancelForm">
+            <label><input type="radio" name="reason" value="เปลี่ยนใจ" required> เปลี่ยนใจไม่ฝากหิ้วแล้ว</label>
+            <label><input type="radio" name="reason" value="ช้า"> ผู้รับหิ้วใช้เวลานานเกินไป</label>
+            <label><input type="radio" name="reason" value="เจอถูกกว่า"> เจอราคาถูกกว่าที่อื่น</label>
+            <label><input type="radio" name="reason" value="อื่นๆ"> อื่นๆ</label>
+
+            <textarea name="note" id="note" placeholder="รายละเอียดเพิ่มเติม (กรณีเลือก ‘อื่นๆ’ ต้องกรอก)"></textarea>
+            <div class="note">หมายเหตุ: ยกเลิกได้เฉพาะออร์เดอร์ที่ยัง <b>open/claimed</b> (หรือค่าที่คุณตั้งใน backend)</div>
+
+            <div class="actions">
+                <button class="btn danger" type="submit" id="submitBtn">ยืนยันยกเลิก</button>
+                <button class="btn muted" type="button" onclick="history.back()">ปิด</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // ดึง code จาก query string เช่น cancel.html?code=A001
+        const params = new URLSearchParams(location.search);
+        const orderCode = params.get("code") || "A001";
+        document.getElementById("title").textContent = "ยกเลิกออร์เดอร์ " + orderCode;
+
+        const form = document.getElementById('cancelForm');
+        const noteEl = document.getElementById('note');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const fd = new FormData(form);
+            const reason = fd.get("reason");
+            const note = fd.get("note")?.toString().trim() || "";
+
+            // ถ้าเลือก "อื่นๆ" บังคับให้กรอก note
+            if (reason === "อื่นๆ" && !note) {
+                alert("กรุณากรอกรายละเอียดเพิ่มเติมเมื่อเลือก ‘อื่นๆ’");
+                noteEl.focus();
+                return;
+            }
+
+            submitBtn.disabled = true;
+
+            try {
+                const r = await fetch(`/api/orders/${orderCode}/cancel`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ reason, note })
+                });
+
+                const text = await r.text(); // เผื่อ backend ส่ง message มา
+
+                if (!r.ok) {
+                    // แสดงข้อความจาก backend เช่น "ยกเลิกไม่ได้ในสถานะปัจจุบัน"
+                    alert(text || `ยกเลิกไม่สำเร็จ (${r.status})`);
+                    submitBtn.disabled = false;
+                    return;
+                }
+
+                alert("ยกเลิกสำเร็จ");
+                // กลับหน้าแรกฝั่งลูกค้า
+                location.href = "/customer/index.html";
+            } catch (err) {
+                console.error(err);
+                alert("เชื่อมต่อเซิร์ฟเวอร์ไม่ได้");
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,462 @@
+﻿<!doctype html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>carryMe – ผู้รับหิ้ว</title>
+    <style>
+        :root {
+            --blue: #1f4396;
+            --blue2: #0f2b68;
+            --panel: #fff;
+            --line: #e5e7eb;
+            --ink: #0f172a;
+            --muted: #64748b;
+            --btn: #0ea5e9
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui,-apple-system,Segoe UI,Roboto,Prompt,sans-serif;
+            background: #f5f6fb;
+            color: var(--ink)
+        }
+
+        .hero {
+            background: linear-gradient(135deg,var(--blue),var(--blue2));
+            color: #fff;
+            padding: 26px 20px 18px;
+            border-bottom-left-radius: 28px;
+            border-bottom-right-radius: 28px
+        }
+
+            .hero h1 {
+                margin: 6px 0 14px;
+                font-size: 30px;
+                font-weight: 800
+            }
+
+        .container {
+            max-width: 920px;
+            margin: -18px auto 24px;
+            padding: 0 16px
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4,1fr);
+            gap: 10px
+        }
+
+        .tile {
+            background: rgba(255,255,255,.12);
+            border: 1px solid rgba(255,255,255,.25);
+            border-radius: 14px;
+            padding: 12px;
+            text-align: center
+        }
+
+            .tile .v {
+                font-size: 22px;
+                font-weight: 800
+            }
+
+            .tile .k {
+                font-size: 12px;
+                opacity: .9
+            }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin: 8px 0 0
+        }
+
+        .tab {
+            background: #e2e8f0;
+            color: #0f172a;
+            border: 0;
+            padding: 8px 12px;
+            border-radius: 999px;
+            cursor: pointer;
+            font-weight: 700
+        }
+
+            .tab.active {
+                background: #fff
+            }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 14px;
+            box-shadow: 0 8px 22px rgba(0,0,0,.06);
+            margin-top: 12px
+        }
+
+        .list .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--line)
+        }
+
+            .list .item:last-child {
+                border-bottom: 0
+            }
+
+        .meta {
+            font-size: 13px;
+            color: var(--muted)
+        }
+
+        .btn {
+            background: var(--btn);
+            color: #fff;
+            border: 0;
+            padding: 8px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700
+        }
+
+            .btn.ghost {
+                background: #e2e8f0;
+                color: #0f172a
+            }
+
+            .btn.danger {
+                background: #ef4444
+            }
+
+        .wallet-mini {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px
+        }
+
+            .wallet-mini .bal {
+                font-size: 22px;
+                font-weight: 800
+            }
+
+        @media(max-width:900px) {
+            .grid {
+                grid-template-columns: repeat(2,1fr)
+            }
+        }
+
+        .nav {
+            position: sticky;
+            bottom: 0;
+            background: #fff;
+            border-top: 1px solid var(--line);
+            display: flex;
+            gap: 10px;
+            justify-content: space-around;
+            padding: 10px 8px
+        }
+
+            .nav a {
+                color: #0f172a;
+                text-decoration: none;
+                font-size: 13px
+            }
+
+        /* ===== Modal แจ้งยอด ===== */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15,23,42,.45);
+            display: none;
+            z-index: 40
+        }
+
+            .overlay.show {
+                display: block
+            }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            place-items: center;
+            z-index: 50
+        }
+
+            .modal.show {
+                display: grid
+            }
+
+        .modal-panel {
+            width: min(520px,92vw);
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            box-shadow: 0 12px 30px rgba(0,0,0,.18)
+        }
+
+        .modal-head {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--line);
+            font-weight: 800
+        }
+
+        .modal-body {
+            padding: 14px 16px;
+            display: grid;
+            gap: 10px
+        }
+
+        .row {
+            display: grid;
+            gap: 6px
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 600
+        }
+
+        input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 14px
+        }
+
+        .checks {
+            display: grid;
+            gap: 8px
+        }
+
+            .checks label {
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                gap: 8px
+            }
+
+        .modal-foot {
+            padding: 12px 16px;
+            border-top: 1px solid var(--line);
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <div class="container" style="padding:0">
+            <h1>ผู้รับหิ้ว</h1>
+            <div class="grid">
+                <div class="tile"><div class="v" id="mOpen">0</div><div class="k">งานรอรับ</div></div>
+                <div class="tile"><div class="v" id="mActive">0</div><div class="k">งานกำลังทำ</div></div>
+                <div class="tile"><div class="v" id="mEarn">0</div><div class="k">รายได้วันนี้ (฿)</div></div>
+            </div>
+
+            <div class="tabs" style="margin-top:12px">
+                <button class="tab active" data-tab="new">งานใหม่</button>
+                <button class="tab" data-tab="mine">งานของฉัน</button>
+                <button class="tab" data-tab="history">ประวัติ</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- wallet mini -->
+        <section class="card">
+            <div class="wallet-mini">
+                <div>
+                    <strong>กระเป๋าเงิน</strong>
+                    <div class="meta">ใช้หักค่าธรรมเนียม/รับรายได้</div>
+                </div>
+                <div class="bal" id="miniBalance">0.00 ฿</div>
+            </div>
+            <div style="margin-top:10px;display:flex;gap:8px">
+                <a class="btn" href="/rider/wallet.html">เติมเครดิต</a>
+                <button class="btn ghost" id="refreshWallet">รีเฟรชยอด</button>
+            </div>
+        </section>
+
+        <section id="panel-new" class="card list"><div class="meta">กำลังโหลด…</div></section>
+        <section id="panel-mine" class="card list" style="display:none"><div class="meta">กำลังโหลด…</div></section>
+        <section id="panel-history" class="card list" style="display:none"><div class="meta">กำลังโหลด…</div></section>
+        <!-- <section id="panel-payout" class="card" style="display:none">
+             <div class="meta">สรุปรายได้วันนี้</div>
+             <div id="payout-box" style="font-size:18px;font-weight:800;margin-top:8px">0 บาท</div>
+        </section> -->
+
+    </div>
+
+    <nav class="nav">
+        <a href="/">หน้าหลัก</a>
+        <a href="/rider/dashboard.html">แดชบอร์ด</a>
+        <a href="/rider/wallet.html">กระเป๋าเงิน</a>
+        <a href="/rider/login.html" id="logout">ออกจากระบบ</a>
+    </nav>
+
+    <!-- ===== Modal แจ้งยอด ===== -->
+    <div id="finalizeOverlay" class="overlay"></div>
+    <div id="finalizeModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="finTitle">
+        <div class="modal-panel">
+            <div class="modal-head" id="finTitle">แจ้งยอด/ตัวเลือกเพิ่มเติม</div>
+            <div class="modal-body">
+                <div class="row">
+                    <label for="finGoods">ราคาสินค้าจริง (บาท)</label>
+                    <input id="finGoods" type="number" inputmode="numeric" min="0" step="1" placeholder="เช่น 250" />
+                </div>
+                <div class="row">
+                    <label>เงื่อนไขเพิ่มเติม</label>
+                    <div class="checks">
+                        <label><input type="checkbox" id="finRain"> ฝนตก (+10)</label>
+                        <label><input type="checkbox" id="finZ1"> ข้ามโซน ขามเรียง เกิน (+10)</label>
+                        <label><input type="checkbox" id="finZ2"> ข้ามโซน ท่าขอนยาง เกิน (+10)</label>
+                        <label><input type="checkbox" id="finZ3"> ข้ามโซน หน้า มมส เกิน (+10)</label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button class="btn ghost" type="button" onclick="closeFinalize()">ยกเลิก</button>
+                <button class="btn" type="button" onclick="submitFinalize()">บันทึกแจ้งยอด</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const $ = s => document.querySelector(s);
+        const panels = { new: $('#panel-new'), mine: $('#panel-mine'), history: $('#panel-history'), payout: $('#panel-payout') };
+
+        document.querySelectorAll('.tab').forEach(b => {
+            b.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+                b.classList.add('active');
+                const t = b.dataset.tab;
+                Object.entries(panels).forEach(([k, el]) => el.style.display = (k === t ? 'block' : 'none'));
+            });
+        });
+
+        function showErr(sel, msg) { const el = document.querySelector(sel); if (el) el.innerHTML = `<div class="meta" style="color:#ef4444">Error: ${msg}</div>`; }
+        async function j(u, o) { const r = await fetch(u, o); if (r.status === 401) { location.href = '/rider/login.html'; throw new Error('401'); } if (!r.ok) throw new Error(await r.text()); return r.json(); }
+
+        function itemOpen(o) {
+            return `
+          <div class="item">
+            <div>
+              <div><strong><code>${o.code}</code></strong> • ${o.customer_name ?? '-'}</div>
+              <div class="meta">${o.shop ?? '-'} → ${o.dropoff ?? '-'} | งบ ${o.budget ?? 0} ฿</div>
+            </div>
+            <div>
+              <button class="btn" onclick="claim('${o.code}')">รับหิ้ว</button>
+              <a class="btn ghost" href="/customer/order.html?code=${o.code}">ดู</a>
+            </div>
+          </div>`;
+        }
+        function itemMine(o) {
+            const nextBtn = o.status === 'claimed'
+                ? `<button class="btn" onclick="startJob('${o.code}')">เริ่มงาน</button>`
+                : `<button class="btn" onclick="completeJob('${o.code}')">เสร็จงาน</button>`;
+            return `
+          <div class="item">
+            <div>
+              <div><strong><code>${o.code}</code></strong> • สถานะ: ${o.status}</div>
+              <div class="meta">${o.shop ?? '-'} → ${o.dropoff ?? '-'} | งบ ${o.budget ?? 0} ฿</div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn ghost" onclick="mark('${o.code}','going')">กำลังไปซื้อ</button>
+              <button class="btn ghost" onclick="mark('${o.code}','bought')">ซื้อเสร็จ</button>
+              <button class="btn" onclick="openFinalize('${o.code}')">แจ้งยอด</button>
+              ${nextBtn}
+              <button class="btn danger" onclick="cancelJob('${o.code}')">ยกเลิก</button>
+            </div>
+          </div>`;
+        }
+        function itemHistory(o) {
+            return `
+          <div class="item">
+            <div>
+              <div><strong><code>${o.code}</code></strong> • ${o.status}</div>
+              <div class="meta">${o.shop ?? '-'} → ${o.dropoff ?? '-'} | งบ ${o.budget ?? 0} ฿</div>
+            </div>
+            <div><a class="btn ghost" href="/customer/order.html?code=${o.code}">ดู</a></div>
+          </div>`;
+        }
+
+        async function claim(code) { const r = await fetch('/api/rider/orders/' + code + '/claim', { method: 'POST' }); alert(r.ok ? 'รับงานแล้ว' : 'รับงานไม่สำเร็จ'); loadAll(); }
+        async function startJob(code) { const r = await fetch('/api/rider/orders/' + code + '/start', { method: 'POST' }); alert(r.ok ? 'เริ่มงานแล้ว' : 'เริ่มงานไม่สำเร็จ'); loadAll(); }
+        async function completeJob(code) { const r = await fetch('/api/rider/orders/' + code + '/complete', { method: 'POST' }); alert(r.ok ? 'เสร็จงานแล้ว' : 'บันทึกไม่สำเร็จ'); loadAll(); }
+        async function cancelJob(code) {
+            const reason = prompt('เหตุผลยกเลิก'); if (reason === null) return;
+            const r = await fetch('/api/rider/orders/' + code + '/cancel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason }) });
+            alert(r.ok ? 'ยกเลิกแล้ว' : 'ไม่สำเร็จ'); loadAll();
+        }
+        async function mark(code, action) {
+            const r = await fetch('/api/rider/orders/' + code + '/status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action }) });
+            alert(r.ok ? 'อัปเดตแล้ว' : 'ไม่สำเร็จ');
+        }
+
+        // ===== Wallet mini =====
+        document.getElementById('logout').addEventListener('click', async (e) => { e.preventDefault(); await fetch('/api/riders/logout', { method: 'POST' }); location.href = '/rider/login.html'; });
+        async function loadWalletMini() { try { const w = await j('/api/rider/wallet'); $('#miniBalance').textContent = (w.wallet || 0).toFixed(2) + ' ฿'; } catch { } }
+        document.getElementById('refreshWallet').addEventListener('click', loadWalletMini);
+
+        async function loadAll() {
+            try {
+                const sum = await j('/api/rider/summary');
+                $('#mOpen').textContent = sum.open;
+                $('#mActive').textContent = sum.active;
+                $('#mEarn').textContent = sum.earning_today.toFixed(0);
+            } catch (e) { showErr('#panel-new', e.message); }
+
+            try { const open = await j('/api/rider/orders/new'); $('#panel-new').innerHTML = open.length ? open.map(itemOpen).join('') : '<div class="meta">ยังไม่มีงาน</div>'; } catch (e) { showErr('#panel-new', e.message); }
+            try { const mine = await j('/api/rider/orders/mine'); $('#panel-mine').innerHTML = mine.length ? mine.map(itemMine).join('') : '<div class="meta">ยังไม่มีงานกำลังทำ</div>'; } catch (e) { showErr('#panel-mine', e.message); }
+            try { const his = await j('/api/rider/orders/history'); $('#panel-history').innerHTML = his.length ? his.map(itemHistory).join('') : '<div class="meta">ยังไม่มีประวัติ</div>'; } catch (e) { showErr('#panel-history', e.message); }
+
+            // (ลบส่วนที่เคยเรียก /api/rider/earnings/today)
+            loadWalletMini();
+        }
+
+
+        // ===== Modal logic =====
+        let finOrderCode = null;
+        function openFinalize(code) {
+            finOrderCode = code;
+            $('#finGoods').value = '';
+            $('#finRain').checked = false; $('#finZ1').checked = false; $('#finZ2').checked = false; $('#finZ3').checked = false;
+            $('#finalizeOverlay').classList.add('show'); $('#finalizeModal').classList.add('show');
+            $('#finGoods').focus();
+        }
+        function closeFinalize() {
+            $('#finalizeOverlay').classList.remove('show'); $('#finalizeModal').classList.remove('show');
+            finOrderCode = null;
+        }
+        async function submitFinalize() {
+            if (!finOrderCode) return;
+            const goods = +($('#finGoods').value || 0);
+            const rain = $('#finRain').checked, z1 = $('#finZ1').checked, z2 = $('#finZ2').checked, z3 = $('#finZ3').checked;
+            try {
+                const r = await fetch('/api/rider/orders/' + finOrderCode + '/finalize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ goods_cost: goods, rain, z1, z2, z3 })
+                });
+                if (!r.ok) throw new Error(await r.text());
+                alert('แจ้งยอดแล้ว');
+                closeFinalize();
+            } catch (e) { alert('ไม่สำเร็จ: ' + e.message); }
+        }
+
+        loadAll();
+    </script>
+</body>
+</html>
