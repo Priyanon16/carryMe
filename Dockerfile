@@ -14,11 +14,12 @@ RUN apt-get update && apt-get install -y rclone sqlite3 && rm -rf /var/lib/apt/l
 # คัดลอกไฟล์ publish ที่ build มา
 COPY --from=build /out .
 
-# สคริปต์เริ่มต้น (จะรัน rclone restore/backup + รันเว็บ)
+# คัดลอกสคริปต์เริ่มต้น
 COPY start.sh /start.sh
-RUN chmod +x /start.sh
+# แก้ไขกรณีไฟล์มาจาก Windows (CRLF) เพื่อไม่ให้ bash error
+RUN sed -i 's/\r$//' /start.sh && chmod +x /start.sh
 
-# Render จะใส่ PORT ให้เอง → ชี้ URL ให้ .NET ฟังพอร์ตนี้
+# บังคับ .NET ให้ bind ไปที่พอร์ตที่ Render กำหนด
 ENV ASPNETCORE_URLS=http://0.0.0.0:${PORT}
 
 # รันสคริปต์เริ่มต้น
