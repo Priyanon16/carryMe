@@ -21,19 +21,21 @@ services:
       access_key_id = ${SB_S3_KEY}
       secret_access_key = ${SB_S3_SECRET}
       endpoint = https://${SB_PROJECT_REF}.supabase.co/storage/v1/s3
+      no_check_bucket = true
       EOF
 
-      echo "== Prepare local dirs =="
       mkdir -p wwwroot/uploads
 
-      echo "== Ensure bucket paths exist (creates uploads/ if missing) =="
+      echo "== Ensure bucket structure on remote =="
       rclone mkdir supabase:${SB_BUCKET} --config rclone.conf || true
       rclone mkdir supabase:${SB_BUCKET}/uploads --config rclone.conf || true
 
-      echo "== Restore from Supabase (if exists) =="
+      echo "== Restore DB & uploads (if exist) =="
       rclone ls supabase:${SB_BUCKET} --config rclone.conf || true
-      rclone copy supabase:${SB_BUCKET}/carryme.db ./ --config rclone.conf || true
-      rclone copy supabase:${SB_BUCKET}/uploads ./wwwroot/uploads --config rclone.conf || true
+      rclone copy -v supabase:${SB_BUCKET}/carryme.db ./ --config rclone.conf || true
+      rclone copy -v supabase:${SB_BUCKET}/uploads ./wwwroot/uploads --config rclone.conf || true
+      ls -l || true
+      [ -f carryme.db ] && echo "DB restored OK" || echo "DB not found on remote (first run?)"
 
       echo "== Start app =="
       set +e
@@ -41,13 +43,12 @@ services:
       APP_PID=$!
       set -e
 
-      echo "== Immediate backup once (to seed remote) =="
-      # อัปโหลดครั้งแรกทันที เพื่อให้ครั้งต่อไปดึงได้แน่
-      rclone copy ./carryme.db supabase:${SB_BUCKET} --config rclone.conf || true
-      rclone copy ./wwwroot/uploads supabase:${SB_BUCKET}/uploads --config rclone.conf || true
+      echo "== Immediate backup once (seed remote) =="
+      [ -f carryme.db ] && rclone copy -v ./carryme.db supabase:${SB_BUCKET} --config rclone.conf || true
+      rclone copy -v ./wwwroot/uploads supabase:${SB_BUCKET}/uploads --config rclone.conf || true
 
-      echo "== Start fast backup loop (every 10s) =="
+      echo "== Fast backup loop (every 10s) =="
       while sleep 10; do
-        rclone copy ./carryme.db supabase:${SB_BUCKET} --config rclone.conf || true
-        rclone copy ./wwwroot/uploads supabase:${SB_BUCKET}/uploads --config rclone.conf || true
+        [ -f carryme.db ] && rclone copy -v ./carryme.db supabase:${SB_BUCKET} --config rclone.conf || true
+        rclone copy -v ./wwwroot/uploads supabase:${SB_BUCKET}/uploads --config rclone.conf || true
       done
